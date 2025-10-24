@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  imgPath: '/assets/img/'
+  imgPath: 'assets/img/'
 };

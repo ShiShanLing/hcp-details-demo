@@ -37,7 +37,6 @@ git push origin dev
 ```
 https://shishanling.github.io/hcp-details-demo/
 ```
-
 ## 配置说明
 
 ### Angular 配置

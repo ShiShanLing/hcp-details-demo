@@ -1,0 +1,15 @@
+# 确保 JavaScript 文件使用正确的 MIME 类型
+<FilesMatch "\.js$">
+    Header set Content-Type "application/javascript; charset=utf-8"
+</FilesMatch>
+
+# 确保 CSS 文件使用正确的 MIME 类型
+<FilesMatch "\.css$">
+    Header set Content-Type "text/css; charset=utf-8"
+</FilesMatch>
+
+# 禁用 gzip 压缩，因为我们已经预压缩了文件
+<IfModule mod_deflate.c>
+    SetEnvIfNoCase Request_URI \
+        \.(?:gif|jpe?g|png|css|js)$ no-gzip dont-vary
+</IfModule>
