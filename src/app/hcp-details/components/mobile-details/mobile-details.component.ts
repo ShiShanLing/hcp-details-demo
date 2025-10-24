@@ -94,6 +94,28 @@ export class MobileDetailsComponent implements OnInit, OnDestroy {
     
     // 添加直接的窗口大小变化监听
     window.addEventListener('resize', this.handleResize);
+    
+    // 监听窗口焦点变化，解决切换桌面后图表消失的问题
+    window.addEventListener('focus', () => {
+      setTimeout(() => {
+        if (this.chart) {
+          this.chart.resize();
+        } else {
+          this.initChart();
+        }
+        this.cdr.detectChanges();
+      }, 100);
+    });
+
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && this.chart) {
+        setTimeout(() => {
+          this.chart?.resize();
+          this.cdr.detectChanges();
+        }, 100);
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -102,6 +124,8 @@ export class MobileDetailsComponent implements OnInit, OnDestroy {
     }
     // 清理事件监听器
     window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('focus', () => {});
+    document.removeEventListener('visibilitychange', () => {});
   }
   
   private handleResize = () => {
@@ -116,9 +140,19 @@ export class MobileDetailsComponent implements OnInit, OnDestroy {
   initChart() {
     const chartElement = document.getElementById('chart');
     if (chartElement) {
+      // 如果图表已存在，先销毁
+      if (this.chart) {
+        this.chart.dispose();
+      }
+      
       this.chart = echarts.init(chartElement);
       const option = getChartOption();
       this.chart.setOption(option);
+      
+      // 添加图表渲染完成后的回调
+      this.chart.on('finished', () => {
+        console.log('移动端图表渲染完成');
+      });
     }
   }
 
