@@ -507,7 +507,7 @@ $gray-dark: #333;
 
   //如果想要 不限制高度注释掉这个
   .ant-list-items {
-    max-height: 100px;
+    // max-height: 100px;
 
   }
 
@@ -538,7 +538,7 @@ $gray-dark: #333;
     display: flex;
     align-items: center;
     padding-bottom: 3px;
-    padding: 0px 10px;
+    padding: 3px 10px;
   }
 
   .ant-list-bordered {

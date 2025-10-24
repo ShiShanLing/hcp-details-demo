@@ -156,6 +156,7 @@ export function getChartOption(isMobile: boolean = false) {
           textStyle: {
             color: '#000000'
           },
+          //
           formatter(params: any) {
             return formatter(params, wordNum)
           }

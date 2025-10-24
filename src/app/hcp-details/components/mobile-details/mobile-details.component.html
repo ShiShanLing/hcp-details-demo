@@ -98,11 +98,9 @@
                     <!-- <div class="tag"></div> -->
                     <i [class]="['iconfont', item.icon]" [style]="{fontSize: $index === 0 ? '16px' : '18px'}"></i>
                     {{item.title}}</nz-list-header>
-                  <ng-scrollbar [style]="{'maxHeight': '75px'}">
                     @for (item of item.list; track item) {
-                    <nz-list-item>{{item}}</nz-list-item>
-                    }
-                  </ng-scrollbar>
+                        <nz-list-item>{{item}}</nz-list-item>
+                        }
                 </nz-list>
                 }
             </div>
