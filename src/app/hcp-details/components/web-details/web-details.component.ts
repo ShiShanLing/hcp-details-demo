@@ -85,8 +85,29 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
     //监听屏幕宽度
     this.notificationService.subscribeToBrowserWindowSizeChange(BrowserWindowSizeChangeEnum.HcpDetails, (message: any) => {
       //刷新图表
-      
-      this.chart?.resize();
+      setTimeout(() => {
+        this.chart?.resize();
+      }, 100);
+    });
+
+    // 监听窗口焦点变化，解决切换桌面后图表消失的问题
+    window.addEventListener('focus', () => {
+      setTimeout(() => {
+        if (this.chart) {
+          this.chart.resize();
+        } else {
+          this.initChart();
+        }
+      }, 100);
+    });
+
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && this.chart) {
+        setTimeout(() => {
+          this.chart?.resize();
+        }, 100);
+      }
     });
   }
 
@@ -95,6 +116,10 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
       this.chart.dispose();
     }
     this.notificationService.unsubscribeBrowserWindowSizeChangeNotification(BrowserWindowSizeChangeEnum.HcpDetails);
+    
+    // 清理事件监听器
+    window.removeEventListener('focus', () => {});
+    document.removeEventListener('visibilitychange', () => {});
   }
 
   // 图例点击事件
@@ -123,8 +148,18 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   initChart() {
     const chartElement = document.getElementById('chart') as HTMLElement;
     if (chartElement) {
+      // 如果图表已存在，先销毁
+      if (this.chart) {
+        this.chart.dispose();
+      }
+      
       this.chart = echarts.init(chartElement);
       this.chart.setOption(getChartOption());
+      
+      // 添加图表渲染完成后的回调
+      this.chart.on('finished', () => {
+        console.log('图表渲染完成');
+      });
     }
   }
 
