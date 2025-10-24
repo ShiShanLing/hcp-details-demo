@@ -154,7 +154,7 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
       }
       
       this.chart = echarts.init(chartElement);
-      this.chart.setOption(getChartOption());
+      this.chart.setOption(getChartOption(false));  // 传递 isMobile: false
       
       // 添加图表渲染完成后的回调
       this.chart.on('finished', () => {

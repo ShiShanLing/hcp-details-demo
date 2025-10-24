@@ -1,6 +1,6 @@
 
-
-export function getChartOption() {
+//添加是否是手机端入参
+export function getChartOption(isMobile: boolean = false) {
     const payload: any = {
       id: 'right-bottom',
       title: ['排名1', '排名2'],
@@ -10,10 +10,10 @@ export function getChartOption() {
       data: {
         position: 'left',
         legend: [
-          '{a|p1}  {b|54.6}{f|分} {c|▲}',
-          '{a|p2}  {b|54.6}{f|分} {c|▼}',
-          '{a|p3}  {b|54.6}{f|分} {c|▲}',
-          '{a|p4}  {b|54.6}{f|分} {c|▼}',
+          'p1 54.6分',
+          'p2 54.6分',
+          'p3 54.6分',
+          'p4 54.6分',
         ],
         data1: [7, 4.5, 8, 6.5, 11, 9]  ,
         data2: [4, 10, 2, 1, 5.5, 3],
@@ -123,25 +123,22 @@ export function getChartOption() {
         backgroundColor: 'rgba(9, 30, 60, 0.6)',
         extraCssText: 'box-shadow: 0 0 8px rgba(0, 128, 255, 0.27) inset;',
         borderWidth: 0,
-        confine: false,
-        appendToBody: true,
+        confine: isMobile ? true : false,  // 手机端限制在父元素内
+        appendToBody: isMobile ? false : true,  // 手机端不追加到body
         textStyle: {
           color: '#fff',
-          fontSize: 10
+          fontSize: isMobile ? 12 : 10  // 手机端字体稍大
         },
-        position,
+        position: isMobile ? 'inside' : position,  // 手机端使用inside定位
         formatter: (data: any) => {
-          var tip = '<h5 class="echarts-tip-h5">' + data.seriesName + '</h5>'
+          var tip = data.seriesName + '<br/>';
           let tmpData: any[] = []
           if (data.seriesIndex === 0) tmpData = data1
           else if (data.seriesIndex === 1) tmpData = data2
           else if (data.seriesIndex === 2) tmpData = data3
           else if (data.seriesIndex === 3) tmpData = data4
           data.data.forEach((item: any, index: number) => {
-            tip += '<div class="echarts-tip-div">'
-            tip += '<div class="left">' + data.marker + ' ' + payload.data.x[index] + '：</div>'
-            tip += '<div class="right">第' + tmpData[index] + '名</div>'
-            tip += '</div>'
+            tip += data.marker + ' ' + payload.data.x[index] + '：第' + tmpData[index] + '名<br/>'
           })
           return tip
         }
@@ -151,7 +148,7 @@ export function getChartOption() {
       },
       radar: {
         center: ['35%', '50%'],
-        radius: '60%',
+        radius: isMobile ? '45%' : '60%',
         startAngle: 90,
         splitNumber: 4,
         axisName: {

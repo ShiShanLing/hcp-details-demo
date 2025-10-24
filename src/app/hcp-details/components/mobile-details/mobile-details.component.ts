@@ -146,7 +146,7 @@ export class MobileDetailsComponent implements OnInit, OnDestroy {
       }
       
       this.chart = echarts.init(chartElement);
-      const option = getChartOption();
+      const option = getChartOption(true);  // 传递 isMobile: true
       this.chart.setOption(option);
       
       // 添加图表渲染完成后的回调
