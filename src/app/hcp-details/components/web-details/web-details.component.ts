@@ -23,6 +23,10 @@ import { environment } from '@env/environment';
 export class WebDetailsComponent implements OnInit, OnDestroy {
   private chart: echarts.ECharts | null = null;
   imgPath = environment.imgPath;
+  
+  // 检测是否为 iPad
+  isIPad = false;
+  scrollbarMaxHeight = '95px';
 
   // 图例数据状态
   legendData = [
@@ -75,6 +79,9 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // 检测是否为 iPad
+    this.detectIPad();
+    
     // 使用 setTimeout 确保 DOM 已经渲染完成
     setTimeout(() => {
       this.initChart();
@@ -120,6 +127,36 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
     // 清理事件监听器
     window.removeEventListener('focus', () => {});
     document.removeEventListener('visibilitychange', () => {});
+  }
+
+  // 检测设备类型和设置高度
+  private detectIPad() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // 检测是否为手机版布局（高度 > 宽度）
+    const isMobileLayout = screenHeight > screenWidth;
+    
+    // iPad 检测方法
+    const isIPadUserAgent = /ipad/.test(userAgent);
+    const isIPadBySize = screenWidth >= 768 && screenWidth <= 1366;
+    const isIPadAspectRatio = Math.abs(screenWidth / screenHeight - 4/3) < 0.1;
+    
+    // 综合判断
+    this.isIPad = isIPadUserAgent || isIPadBySize || isIPadAspectRatio;
+    
+    // 根据布局类型设置滚动条高度
+    if (isMobileLayout) {
+      // 手机版布局：使用较小高度
+      this.scrollbarMaxHeight = '75px';
+    } else if (this.isIPad) {
+      // iPad 横屏：使用较大高度
+      this.scrollbarMaxHeight = '175px';
+    } else {
+      // 桌面版：使用中等高度
+      this.scrollbarMaxHeight = '95px';
+    }
   }
 
   // 图例点击事件

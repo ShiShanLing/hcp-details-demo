@@ -46,15 +46,18 @@ export class HcpDetailsComponent implements OnInit, OnDestroy {
   
   private checkScreenSize() {
     const width = window.innerWidth;
+    const height = window.innerHeight;
     const wasMobile = this.isMobile;
-    const newIsMobile = width <= 768;
+    
+    // 检测是否为手机版布局（高度 > 宽度）
+    const newIsMobile = height > width;
     
     if (wasMobile !== newIsMobile) {
       // 使用 setTimeout 避免变更检测错误
       setTimeout(() => {
         this.isMobile = newIsMobile;
         this.cdr.detectChanges();
-        console.log('屏幕尺寸变化:', width, 'px, 切换到:', this.isMobile ? '移动端' : '桌面端');
+        console.log('屏幕方向变化:', width, 'x', height, 'px, 切换到:', this.isMobile ? '手机版布局' : '桌面版布局');
         
         // 如果切换到移动端，延迟触发窗口大小变化事件
         if (newIsMobile) {
