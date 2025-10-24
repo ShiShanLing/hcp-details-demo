@@ -1,0 +1,14 @@
+<div class="hcp-details-container" [class.mobile-layout]="isMobile">
+  <!-- 移动端布局 -->
+  @if (isMobile) {
+    <div class="mobile-layout">
+      <gsk-mobile-details></gsk-mobile-details>
+    </div>
+  }
+  <!-- 桌面端布局 -->
+  @if (!isMobile) {
+    <div class="desktop-layout">
+      <gsk-web-details></gsk-web-details>
+    </div>
+  }
+</div>

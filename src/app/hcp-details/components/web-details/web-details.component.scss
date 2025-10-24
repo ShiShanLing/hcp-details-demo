@@ -1,0 +1,772 @@
+//创建scss变量主题色
+$theme-color: #33b5ff;
+
+// 三栏布局容器 - 桌面端专用
+.web-details-container {
+  display: flex;
+  height: 100vh;
+  gap: 12px;
+  padding: 1rem;
+  background: linear-gradient(to top right, rgb(183, 218, 249), rgb(240, 245, 250));
+}
+
+// 560 占总和的 42.88%
+// 470 占总和的 36.00%
+// 276 占总和的 21.14%
+
+.iconfont {
+  margin-right: 5px;
+  color: $theme-color;
+  font-size: 18px;
+}
+
+
+.icon-up1 {
+  color: $theme-color;
+}
+
+.icon-xiajiang {
+  transform: rotate(180deg);
+  color: #dc3545;
+}
+
+.icon-xiangmu {
+  color: $theme-color;
+}
+
+// 左侧：医生基本信息
+.left-section {
+  //添加背景图片
+  background-position: top center; // 靠上居中显示
+  background-repeat: no-repeat; // 不重复
+  background-size: cover; // 覆盖整个区域
+  background-color: rgba(255, 255, 255, 0.9); // 使用background-color而不是background
+  width: 21.14%;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  .background-image {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background-size: cover;
+  }
+
+  .scrollbar{
+    z-index: 1;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    
+    // height: 100%;
+    position: absolute;
+  }
+  .doctor-basic-info {
+    h3 {
+      margin: 0 0 1.5rem 0;
+      color: #333;
+      font-size: 1.2rem;
+    }
+
+    .doctor-avatar {
+      text-align: center;
+      margin-bottom: 1rem;
+
+      .avatar-img {
+        margin-top: 50px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #e9ecef;
+      }
+    }
+
+    .doctor-details {
+      h4 {
+        margin: 0 0 0.5rem 0;
+        color: #333;
+        font-size: 1.1rem;
+      }
+
+      .title {
+        text-align: center;
+        margin: 0.25rem 0;
+        font-weight: 500;
+        // color: #666;
+        font-size: 0.9rem;
+      }
+
+      //性别和年纪
+      .gender-age {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .t {
+          margin-right: 5px;
+          font-size: 14px;
+          // font-weight: 500;
+        }
+
+        .v {
+          font-size: 14px;
+          // font-weight: 500;
+        }
+
+        .icon {
+          font-size: 13px;
+        }
+
+        .icon-xingbie-nan {
+          margin-right: 5px;
+          color: #1976d2;
+          font-size: 10px;
+          font-weight: 500;
+        }
+
+        .icon-xingbie-nv {
+          margin-right: 5px;
+          //粉色
+          color: #ff4081;
+          font-size: 12px;
+        }
+
+        .icon-nianling {
+          margin-right: 5px;
+          //绿色
+          color: #4CAF50;
+          font-size: 10px;
+        }
+
+      }
+
+      .hospital {
+
+        font-size: 14px;
+        // font-weight: 500;
+        text-align: center;
+
+      }
+
+      .hcp-description {
+        font-size: 14px;
+        // font-weight: 500;
+        color: #666;
+        // text-align: center;
+      }
+
+      .contact-info {
+        margin: 1rem 0;
+
+        p {
+          margin: 0.5rem 0;
+          color: #666;
+          font-size: 0.9rem;
+
+          i {
+            margin-right: 0.5rem;
+            color: #007bff;
+          }
+        }
+      }
+
+      .specialties {
+        margin-top: 1rem;
+
+        h5 {
+          margin: 0 0 0.5rem 0;
+          color: #333;
+          font-size: 1rem;
+        }
+
+        .tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+
+          .tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// 中间：图表评分信息
+.middle-section {
+  min-width: 480px;
+  position: relative;
+  width: 36.00%;
+
+  background: rgba(255, 255, 255, 0.9);
+  // background-color: #33b5ff;
+
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+
+  .header-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    // justify-content: space-between;
+    // position: absolute;
+    height: 70px;
+    margin-left: -12px;
+
+    .tag {
+      width: 5px;
+      min-width: 6px;
+      height: 22px;
+      background-color: rgb(33, 140, 234);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .title {
+      margin-left: 6px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+  }
+
+  .chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+
+    .chart {
+      margin-left: 15px;
+      width: 80%;
+      height: 100%;
+    }
+
+    // 调整雷达图轴标签位置
+    ::ng-deep .echarts-radar-axis-name {
+      transform: scale(0.8) !important;
+      transform-origin: center !important;
+    }
+
+    // 或者使用更具体的选择器
+    ::ng-deep .echarts-axis-name {
+      transform: translateX(-10px) !important;
+    }
+
+    // 尝试更通用的选择器
+    ::ng-deep text {
+      transform: translateX(-15px) !important;
+    }
+  }
+
+  .scrollbar {
+    flex: 1;
+  }
+
+
+  // 自定义图例样式
+  .custom-legend {
+    position: absolute;
+    top: 0%;
+    right: 20px;
+    //   transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    //   gap: 12px;
+    z-index: 10;
+    flex-wrap: wrap;
+    max-width: 400px;
+
+    //平均分展示
+    .average-value-box {
+      background-color: #98989821;
+      margin-left: 0;
+      margin-right: 0;
+      height: 80px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center; // 上下居中
+      justify-content: center; // 水平居中
+      position: relative; // 为绝对定位做准备
+
+      .title {
+        margin-right: 3px;
+        font-size: 14px;
+        color: #666;
+        line-height: 1;
+        position: relative;
+        top: 0.2em; // 微调位置，让文字稍微上移
+      }
+
+      .value {
+        margin-right: 3px;
+        font-size: 28px;
+        color: #333;
+        font-weight: bold;
+        line-height: 1;
+      }
+
+      .state {
+        margin-top: 7px;
+      }
+
+      //上升还是下降
+      .up {
+        color: theme-color;
+        line-height: 1;
+        position: relative;
+        top: 0.5em; // 微调位置，让图标稍微上移
+      }
+
+      .down {
+        color: #dc3545;
+        line-height: 1;
+        position: relative;
+        top: 0.5em; // 微调位置，让图标稍微上移
+      }
+
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      //   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      min-width: 120px;
+      flex: 1;
+
+      &:hover {
+        background: rgba(255, 255, 255, 1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        transform: translateX(-2px);
+      }
+
+      &.disabled {
+        opacity: 0.4;
+        background: rgba(200, 200, 200, 0.5);
+
+        .legend-color {
+          opacity: 0.3;
+        }
+
+        .legend-text {
+          color: #999;
+        }
+      }
+    }
+
+    .legend-color {
+      width: 18px;
+      height: 8px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .legend-text {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #333;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .legend-name {
+      font-weight: bold;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .legend-score {
+      color: #666;
+      font-size: 12px;
+      text-align: center;
+      min-width: 50px; // 固定宽度确保对齐
+      flex-shrink: 0;
+    }
+
+
+    .legend-trend {
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      min-width: 20px; // 固定宽度确保对齐
+      flex-shrink: 0;
+
+      &.up {
+        color: $theme-color;
+      }
+
+      &.down {
+        //旋转180度
+        transform: rotate(180deg);
+        color: #dc3545;
+      }
+    }
+
+
+
+  }
+
+
+  // 项目卡片样式 - 桌面端单列布局
+  .project-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 0 12px;
+
+    .project-card {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 6px 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      width: 100%;
+
+      &:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
+    }
+
+    .project-header {
+      display: flex;
+      // justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .project-name {
+      margin-left: 3px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .project-score {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .score {
+      font-size: 18px;
+      color: #333;
+      font-weight: bold;
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+
+      .unit {
+        font-size: 12px;
+        color: #666;
+        font-weight: normal;
+      }
+    }
+
+    .trend {
+      font-size: 16px;
+      font-weight: bold;
+
+      &.up {
+        color: $theme-color;
+      }
+
+      &.down {
+        color: #dc3545;
+      }
+    }
+
+    .project-description {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      text-align: left;
+      padding-top: 8px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+  }
+
+}
+
+// MARK:右侧：
+.right-section {
+  overflow: auto;
+  flex: 1;
+  height: 100%;
+  // background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  // padding: 12px;
+  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  // overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+
+  .ai-analysis-list {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  .ai-analysis {
+    display: flex;
+    flex-direction: column;
+    // height: 100%;
+    flex: 1;
+    .scrollbar {
+      flex: 1;
+    }
+
+    h3 {
+      margin: 0 0 1.5rem 0;
+      color: #333;
+      font-size: 1.2rem;
+    }
+
+    .analysis-section {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+
+
+      // 用药偏好
+      .preference-list {
+        .preference-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.75rem;
+
+          .drug-name {
+            flex: 0 0 100px;
+            font-size: 0.9rem;
+            color: #333;
+          }
+
+          .preference-bar {
+            flex: 1;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 0 0.5rem;
+            overflow: hidden;
+
+            .bar-fill {
+              height: 100%;
+              background: linear-gradient(90deg, #4CAF50, #8BC34A);
+              border-radius: 4px;
+              transition: width 0.3s ease;
+            }
+          }
+
+          .percentage {
+            flex: 0 0 40px;
+            text-align: right;
+            font-size: 0.9rem;
+            color: #666;
+          }
+        }
+      }
+
+      // 访问建议
+      .suggestions {
+        .suggestion-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.75rem;
+          padding: 0.5rem;
+          background: #f8f9fa;
+          border-radius: 4px;
+
+          i {
+            margin-right: 0.5rem;
+            color: #007bff;
+          }
+
+          span {
+            font-size: 0.9rem;
+            color: #333;
+          }
+        }
+      }
+
+
+
+
+    }
+  }
+
+
+  // 医生能力评估卡片 - 桌面端固定4列布局
+  .doctor-ability-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+
+    .ability-card {
+      // background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px 16px;
+      //蓝色
+      // background-color: #cfe2f3;
+      // border: 1px solid #e9ecef;
+      transition: all 0.3s ease;
+      background: linear-gradient(to top, rgb(228, 238, 249) 0%, white 30%, white 100%);
+
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+      }
+    }
+
+    .ability-name {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .ability-value {
+      display: flex;
+      align-items: center;
+      // justify-content: space-between;
+
+      .value {
+        margin-right: 10px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+      }
+    }
+  }
+
+  .smart-tags {
+    flex: 1;
+    margin-top: 12px;
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+
+    // 医生标签
+    .doctor-tags {
+
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+       .tag {
+         padding: 0.25rem 0.75rem;
+         border-radius: 12px;
+         font-size: 0.8rem;
+         font-weight: 500;
+         color: #333;
+         border: 1px solid rgba(0, 0, 0, 0.1);
+         transition: all 0.3s ease;
+         
+        //  &:hover {
+        //    transform: translateY(-1px);
+        //    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        //  }
+       }
+    }
+  }
+
+
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+}
+
+.spacing {
+  flex: 1;
+}
+
+
+
+:host ::ng-deep {
+
+  //如果想要 不限制高度注释掉这个
+  .ant-list-items {
+    max-height: 100px;
+
+  }
+
+  .ant-list-bordered {
+    margin-right: 0;
+  }
+
+
+  .ant-list-split .ant-list-item {
+    border-bottom: none;
+  }
+
+  .ant-list-split .ant-list-header {
+    border-bottom: none;
+  }
+
+
+  .ant-divider-horizontal {
+    margin: 12px 0;
+  }
+
+  .ant-spin-nested-loading>div>.ant-spin {
+    max-height: none;
+  }
+
+  .ant-list-bordered.ant-list-sm .ant-list-header {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    padding-bottom: 3px;
+    padding: 0px 10px;
+  }
+
+  .ant-list-bordered {
+    border-radius: 6px;
+    margin-bottom: 3px;
+    padding-bottom: 5px;
+  }
+
+  .ant-list-bordered.ant-list-sm .ant-list-item {
+    padding: 0px 16px;
+    padding-left: 24px;
+    line-height: 25px;
+  }
+
+
+}

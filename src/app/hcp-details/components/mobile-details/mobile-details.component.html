@@ -1,0 +1,142 @@
+<div class="mobile-details-container">
+   <ng-scrollbar>
+     <!-- 左侧：医生基本信息 -->
+     <div class="left-section" >
+
+        <img [src]="imgPath + 'beijing.jpg'" alt="背景图片" class="background-image">
+        <div class="doctor-basic-info">
+            <div class="doctor-avatar">
+                <img [src]="imgPath  + 'ms-analyse-logo.png'" alt="医生头像" class="avatar-img">
+            </div>
+            <div class="doctor-details">
+                <h2 [style]="{'text-align': 'center'}">张医生</h2>
+                <p class="title" [style]="{'font-size': '16px'}">心内科 主任医师</p>
+                <div class="gender-age">
+                    <div [class]="['spacing']"></div>
+                    <span class="t">性别</span>
+                    <i class="iconfont icon-xingbie-nan"></i>
+                    <span class="t">男</span>
+
+                    <span class="t" [style]="{'margin-left': '15px'}">年纪</span>
+                    <i class="iconfont icon-nianling"></i>
+                    <span class="v">35</span>
+                    <div [class]="['spacing']"></div>
+                </div>
+
+                <p class="hospital" [style]="{'margin-bottom': '5px', 'margin-top': '10px'}">北京协和医院</p>
+                <p class="hospital">北京协和医院是集医疗、教学、科研于一体的现代化综合三级甲等医院，是国家指定的全国疑难重症诊治指导中心</p>
+
+                <p class="hcp-description">
+                    涨海峰医生，从事临床工作15年，曾任三甲医院内科主治医师​。他持有医师资格证书与医师执业证书​，并曾以第一作者身份在《中华麻醉学杂志》发表学术文章，参与市级卫生局科研项目。王医生长期致力于糖尿病、高血压的基层防治宣教，希望用专业与热忱守护患者健康。
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- 中间：图表评分信息 -->
+    <div class="middle-section">
+        <div class="header-box">
+            <div class="tag"></div>
+            <div class="title">评分结果</div>
+        </div>
+
+
+        <ng-scrollbar class="scrollbar">
+            <div class="chart-container">
+                <div class="chart" id="chart"></div>
+                <!-- 自定义图例 -->
+                <div class="custom-legend">
+                    <div [class]="['average-value-box']">
+                        <span class="title">平均分</span>
+                        <span class="value">54.6</span>
+                        <i class="iconfont icon-up1" [style]="{'margin-top': '7px'}"></i>
+                    </div>
+
+                    <div *ngFor="let item of legendData; let i = index" class="legend-item"
+                        [class.disabled]="!item.visible" (click)="toggleLegend(i)">
+                        <div class="legend-color" [style.background-color]="item.color"></div>
+                        <div class="legend-text">
+                            <span class="legend-name">{{item.name}}</span>
+                            <span class="legend-score">{{item.score}}<span [style]="{'font-size': '11px'}">分</span>
+                            </span>
+                            <i class="iconfont icon-up1"
+                                [class]="item.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 项目卡片展示 -->
+            <div class="project-cards">
+                <div *ngFor="let project of projectData; let i = index" class="project-card">
+                    <div class="project-header">
+                        <i class="iconfont icon-xiangmu"></i>
+                        <div class="project-name">{{project.name}}</div>
+                        <div class="spacing"></div>
+                         <div class="project-score">
+                             <span class="score">
+                                 {{project.score}}<span class="unit">分</span>
+                             </span>
+                             <i class="iconfont icon-up1"  [class]="project.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
+                         </div>
+                    </div>
+                    <div class="project-description">{{project.des}}</div>
+                </div>
+            </div>
+        </ng-scrollbar>
+
+    </div>
+
+    <!-- 右侧：AI分析 -->
+    <div class="right-section">
+        <div class="ai-analysis">
+            <div class="ai-analysis-list">
+            @for (item of aiAnalysesResultList; track $index) {
+                <nz-list nzBordered nzSize="small">
+                  <nz-list-header>
+                    <!-- <div class="tag"></div> -->
+                    <i [class]="['iconfont', item.icon]" [style]="{fontSize: $index === 0 ? '16px' : '18px'}"></i>
+                    {{item.title}}</nz-list-header>
+                  <ng-scrollbar [style]="{'maxHeight': '75px'}">
+                    @for (item of item.list; track item) {
+                    <nz-list-item>{{item}}</nz-list-item>
+                    }
+                  </ng-scrollbar>
+                </nz-list>
+                }
+            </div>
+            <!-- 医生能力评估 -->
+            <div class="doctor-ability-cards">
+                <div 
+                    *ngFor="let ability of doctorAbility; let i = index" 
+                    class="ability-card">
+                    <div class="ability-name">{{ability.name}}</div>
+                    <div class="ability-value">
+                        <span class="value">{{ability.value}}</span>
+                        <i class="iconfont icon-up1" [class]="ability.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 智能标签 -->
+            <div class="smart-tags">
+                <h4>智能标签</h4>
+                <ng-scrollbar [style]="{'flex': '1'}">
+                    <div class="doctor-tags">
+                        <span 
+                            *ngFor="let tag of doctorTags; let i = index" 
+                            class="tag"
+                            [style.background-color]="tag.color">
+                            {{tag.name}}
+                        </span>
+                    </div>
+                </ng-scrollbar>
+                
+            </div>
+        </div>
+
+    </div>
+   </ng-scrollbar>
+
+</div>

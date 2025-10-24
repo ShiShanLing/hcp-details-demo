@@ -1,0 +1,57 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* 导入 ng-zorro-antd 样式 */
+@import "ng-zorro-antd/ng-zorro-antd.css";
+
+/* 导入 iconfont 样式 */
+@import "assets/font/iconfont/iconfont.css";
+
+/* 如果需要自定义主题，可以导入 less 文件 */
+/* @import "ng-zorro-antd/ng-zorro-antd.less"; */
+
+/* CSS Reset - 移除浏览器默认样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  margin: 0 !important;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* 确保 app-root 也没有默认样式 */
+app-root {
+  display: block;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* ng-zorro-antd 组件样式补充 */
+.ant-list {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+/* 确保 ng-zorro 组件在移动端也能正确显示 */
+@media (max-width: 768px) {
+  .ant-list {
+    font-size: 14px;
+  }
+}
