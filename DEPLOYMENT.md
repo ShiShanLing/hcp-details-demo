@@ -21,8 +21,8 @@
 ```bash
 # 确保所有更改已提交
 git add .
-git commit -m "配置 GitHub Pages 部署"
-git push origin master
+git commit -m "更新功能"
+git push origin dev
 ```
 
 ### 3. 监控部署状态
@@ -45,7 +45,7 @@ https://shishanling.github.io/hcp-details-demo/
 - **构建输出**: 使用 `dist-gzip` 目录，包含压缩后的文件
 
 ### GitHub Actions 配置
-- **触发条件**: 推送到 `main` 或 `master` 分支时自动部署
+- **触发条件**: 推送到 `dev` 分支时自动部署
 - **构建工具**: 使用 Yarn 进行依赖管理和构建
 - **部署工具**: 使用 `peaceiris/actions-gh-pages@v3`
 
@@ -81,9 +81,15 @@ https://shishanling.github.io/hcp-details-demo/
 
 ## 更新部署
 
-每次推送代码到主分支时，GitHub Actions 会自动：
+每次推送代码到 `dev` 分支时，GitHub Actions 会自动：
 1. 安装依赖
 2. 构建项目
 3. 部署到 GitHub Pages
 
 无需手动操作！
+
+## 分支策略
+
+- **master**: 主分支，用于稳定版本
+- **dev**: 开发分支，用于开发和部署到 GitHub Pages
+- 所有新功能和更新都在 `dev` 分支进行
