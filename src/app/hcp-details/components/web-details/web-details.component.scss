@@ -41,7 +41,7 @@ $theme-color: #33b5ff;
   background-repeat: no-repeat; // 不重复
   background-size: cover; // 覆盖整个区域
   background-color: rgba(255, 255, 255, 0.9); // 使用background-color而不是background
-  width: 21.14%;
+  width: 24.14%;
   border-radius: 8px;
   padding: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -203,11 +203,11 @@ $theme-color: #33b5ff;
   }
 }
 
-// 中间：图表评分信息
+// MARK:中间：
 .middle-section {
   min-width: 480px;
   position: relative;
-  width: 36.00%;
+  width: 39.00%;
 
   background: rgba(255, 255, 255, 0.9);
   // background-color: #33b5ff;
@@ -625,22 +625,29 @@ $theme-color: #33b5ff;
   }
 
 
-  // 医生能力评估卡片 - 桌面端固定4列布局
+  // 医生能力评估卡片 - 固定4列布局
   .doctor-ability-cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-top: 12px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 
     .ability-card {
       // background: #f8f9fa;
       border-radius: 8px;
-      padding: 20px 16px;
+      padding: 24px 16px;
       //蓝色
       // background-color: #cfe2f3;
       // border: 1px solid #e9ecef;
       transition: all 0.3s ease;
       background: linear-gradient(to top, rgb(228, 238, 249) 0%, white 30%, white 100%);
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
 
       &:hover {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -649,22 +656,29 @@ $theme-color: #33b5ff;
     }
 
     .ability-name {
-      font-size: 16px;
+      font-size: 14px;
       color: #666;
       margin-bottom: 12px;
       font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .ability-value {
       display: flex;
       align-items: center;
       // justify-content: space-between;
+      min-width: 0;
 
       .value {
-        margin-right: 10px;
-        font-size: 24px;
+        margin-right: 6px;
+        font-size: 20px;
         font-weight: bold;
         color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }
