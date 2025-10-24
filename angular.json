@@ -51,7 +51,14 @@
                 }
               ],
               "outputHashing": "all",
-              "baseHref": "/hcp-details-demo/"
+              "baseHref": "/hcp-details-demo/",
+              "optimization": {
+                "scripts": true,
+                "styles": true,
+                "fonts": true
+              },
+              "extractLicenses": false,
+              "sourceMap": false
             },
             "development": {
               "optimization": false,
