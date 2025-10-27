@@ -1,2 +1,10 @@
 
-<router-outlet />
+<!-- 第三方库加载动画 -->
+<div class="loading-wrapper" [class.show]="isLoading" [class.hide]="!isLoading">
+  <app-loading-spinner></app-loading-spinner>
+</div>
+
+<!-- 主要内容 -->
+<div class="main-content" [class.show]="!isLoading" [class.hide]="isLoading">
+  <router-outlet />
+</div>

@@ -6,6 +6,7 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
 import { getChartOption, getAiAnalysesResult } from './mock-data';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { BrowserWindowSizeChangeEnum, NotificationService } from '@app/services/notification.service';
+import { LoadingService } from '@app/shared/services/loading.service';
 import { environment } from '@env/environment';
 @Component({
   selector: 'gsk-web-details',
@@ -73,12 +74,14 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   aiAnalysesResultList = [] as any[];
 
   constructor(
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private loadingService: LoadingService
   ) {
     // this.initChart();
   }
 
   ngOnInit() {
+    console.log('WebDetailsComponent ngOnInit');
     // 检测是否为 iPad
     this.detectIPad();
     
@@ -116,6 +119,12 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
         }, 100);
       }
     });
+
+    // 组件初始化完成，停止加载动画
+    setTimeout(() => {
+      console.log('WebDetailsComponent 初始化完成，停止加载动画');
+      this.loadingService.hide();
+    }, 100); // 给一个短暂的延迟，确保组件完全渲染
   }
 
   ngOnDestroy() {

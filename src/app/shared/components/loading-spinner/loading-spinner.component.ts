@@ -1,28 +1,50 @@
-<!doctype html>
-<html lang="en" data-beasties-container>
-<head>
-  <meta charset="utf-8">
-  <title>HcpDetailsDemo</title>
-  <base href="/hcp-details-demo/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <style>
-    /* 初始加载动画样式 */
-    .initial-loading {
-      position: fixed;
-      top: 0;
-      left: 0;
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-loading-spinner',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="loading-container">
+      <div class="medical-spinner">
+        <!-- 医疗十字架 -->
+        <div class="medical-cross">
+          <div class="cross-horizontal"></div>
+          <div class="cross-vertical"></div>
+        </div>
+        
+        <!-- 心跳波形 -->
+        <div class="heartbeat-waves">
+          <div class="wave wave-1"></div>
+          <div class="wave wave-2"></div>
+          <div class="wave wave-3"></div>
+          <div class="wave wave-4"></div>
+        </div>
+        
+            <!-- 旋转的医疗符号 -->
+            <div class="medical-symbols">
+              <div class="symbol symbol-1">+</div>
+              <div class="symbol symbol-2">❤</div>
+              <div class="symbol symbol-3">⚕</div>
+              <div class="symbol symbol-4">💊</div>
+            </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .loading-container {
       width: 100%;
       height: 100%;
       background: rgba(51, 181, 255, 0.6);
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 9999;
       backdrop-filter: blur(5px);
     }
-    
-    .spinner-simple {
+
+    .medical-spinner {
       position: relative;
       width: 120px;
       height: 120px;
@@ -30,7 +52,7 @@
       justify-content: center;
       align-items: center;
     }
-    
+
     /* 医疗十字架 */
     .medical-cross {
       position: absolute;
@@ -135,13 +157,14 @@
       animation-delay: 1s;
     }
 
-    .symbol-4 {
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      animation-delay: 1.5s;
-    }
-    
+        .symbol-4 {
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          animation-delay: 1.5s;
+        }
+
+    /* 动画定义 */
     @keyframes pulse {
       0%, 100% {
         transform: scale(1);
@@ -187,10 +210,10 @@
         transform: scale(1.2);
       }
     }
-    
+
     /* 深色主题适配 */
     @media (prefers-color-scheme: dark) {
-      .initial-loading {
+      .loading-container {
         background: rgba(51, 181, 255, 0.6);
       }
       
@@ -205,41 +228,6 @@
         text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
       }
     }
-    
-    /* Angular应用加载完成后隐藏 */
-    app-root:not(:empty) + .initial-loading {
-      display: none;
-    }
-  </style>
-<style>body,html{width:100%;height:100%}*,:after,:before{box-sizing:border-box}html{font-family:sans-serif;line-height:1.15;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;-ms-overflow-style:scrollbar;-webkit-tap-highlight-color:transparent}@-ms-viewport{width:device-width}body{margin:0;color:#000000d9;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji";font-variant:tabular-nums;line-height:1.5715;background-color:#fff;font-feature-settings:"tnum"}html{--antd-wave-shadow-color:#1890ff;--scroll-bar:0}*{margin:0;padding:0;box-sizing:border-box}html{margin:0;padding:0;height:100%}body{margin:0!important;padding:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;line-height:1.6}app-root{display:block;margin:0;padding:0;height:100%}</style><link rel="stylesheet" href="styles-X5F3ZOIM.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-X5F3ZOIM.css"></noscript></head>
-<body>
-  <app-root></app-root>
-  
-  <!-- 初始加载动画 -->
-  <div class="initial-loading">
-    <div class="spinner-simple">
-      <!-- 医疗十字架 -->
-      <div class="medical-cross">
-        <div class="cross-horizontal"></div>
-        <div class="cross-vertical"></div>
-      </div>
-      
-      <!-- 心跳波形 -->
-      <div class="heartbeat-waves">
-        <div class="wave wave-1"></div>
-        <div class="wave wave-2"></div>
-        <div class="wave wave-3"></div>
-        <div class="wave wave-4"></div>
-      </div>
-      
-      <!-- 旋转的医疗符号 -->
-      <div class="medical-symbols">
-        <div class="symbol symbol-1">+</div>
-        <div class="symbol symbol-2">❤</div>
-        <div class="symbol symbol-3">⚕</div>
-        <div class="symbol symbol-4">💊</div>
-      </div>
-    </div>
-  </div>
-<link rel="modulepreload" href="chunk-ZPRM775K.js"><script src="main-GJGYV7UJ.js" type="module"></script></body>
-</html>
+  `]
+})
+export class LoadingSpinnerComponent {}

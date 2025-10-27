@@ -6,6 +6,7 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
 import { getChartOption, getAiAnalysesResult } from '../web-details/mock-data';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { BrowserWindowSizeChangeEnum, NotificationService } from '@app/services/notification.service';
+import { LoadingService } from '@app/shared/services/loading.service';
 import { environment } from '@env/environment';
 
 @Component({
@@ -70,10 +71,13 @@ export class MobileDetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     private notificationService: NotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private loadingService: LoadingService
   ) { }
 
   ngOnInit() {
+    console.log('MobileDetailsComponent ngOnInit');
+    
     // 延迟初始化图表，确保DOM已渲染
     setTimeout(() => {
       this.initChart();
@@ -116,6 +120,12 @@ export class MobileDetailsComponent implements OnInit, OnDestroy {
         }, 100);
       }
     });
+
+    // 组件初始化完成，停止加载动画
+    setTimeout(() => {
+      console.log('MobileDetailsComponent 初始化完成，停止加载动画');
+      this.loadingService.hide();
+    }, 100); // 给一个短暂的延迟，确保组件完全渲染
   }
 
   ngOnDestroy() {

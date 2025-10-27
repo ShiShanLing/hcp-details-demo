@@ -29,13 +29,13 @@ export function getChartOption(isMobile: boolean = false) {
           '007',
         ],
         indicator: [
-          { max: 11, min: 1, name: '001', color: '#000000' },
-          { max: 11, min: 1, name: '002', color: '#000000' },
-          { max: 11, min: 1, name: '003', color: '#000000' },
-          { max: 11, min: 1, name: '004', color: '#000000' },
-          { max: 11, min: 1, name: '005', color: '#000000' },
-          { max: 11, min: 1, name: '006', color: '#000000' },
-          { max: 11, min: 1, name: '007', color: '#000000' },
+          { max: 10, min: 0, name: '001', color: '#000000' },
+          { max: 10, min: 0, name: '002', color: '#000000' },
+          { max: 10, min: 0, name: '003', color: '#000000' },
+          { max: 10, min: 0, name: '004', color: '#000000' },
+          { max: 10, min: 0, name: '005', color: '#000000' },
+          { max: 10, min: 0, name: '006', color: '#000000' },
+          { max: 10, min: 0, name: '007', color: '#000000' },
         ],
       },
     };
@@ -55,19 +55,19 @@ export function getChartOption(isMobile: boolean = false) {
   
     let reversalData1: any[] = []
     if (data1.length > 0) {
-      reversalData1 = data1.map((item: any) => (11 - item + 1).toFixed(1))
+      reversalData1 = data1.map((item: any) => (10 - item).toFixed(1))
     }
     let reversalData2: any[] = []
     if (data2.length > 0) {
-      reversalData2 = data2.map((item: any) => (11 - item + 1).toFixed(1))
+      reversalData2 = data2.map((item: any) => (10 - item).toFixed(1))
     }
     let reversalData3 = []
     if (data3.length > 0) {
-      reversalData3 = data3.map((item: any) => (11 - item + 1).toFixed(1))
+      reversalData3 = data3.map((item: any) => (10 - item).toFixed(1))
     }
     let reversalData4 = []
     if (data4.length > 0) {
-      reversalData4 = data4.map((item: any) => (11 - item + 1).toFixed(1))
+      reversalData4 = data4.map((item: any) => (10 - item).toFixed(1))
     }
   
     const position = payload.data.position || 'left'
@@ -151,6 +151,7 @@ export function getChartOption(isMobile: boolean = false) {
         radius: isMobile ? '45%' : '60%',
         startAngle: 90,
         splitNumber: 4,
+        alignTicks: false, // 禁用刻度对齐，避免警告
         axisName: {
           fontSize: 14,
           textStyle: {
