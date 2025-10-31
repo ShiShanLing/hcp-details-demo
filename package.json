@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "dev": "ng serve --open --port 4200",
+    "start": "ng serve --open --port 4200",
     "build": "ng build --configuration production --stats-json && gulp",
     "build:analyze": "ng build --configuration production --stats-json && npx webpack-bundle-analyzer dist/hcp-details-demo/stats.json",
     "test": "ng test",
@@ -45,6 +45,7 @@
     "demo"
   ],
   "dependencies": {
+    "@angular/animations": "^20.3.9",
     "@angular/cdk": "^20.2.10",
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",

@@ -8,6 +8,8 @@ import { NzListModule } from 'ng-zorro-antd/list';
 import { BrowserWindowSizeChangeEnum, NotificationService } from '@app/services/notification.service';
 import { LoadingService } from '@app/shared/services/loading.service';
 import { environment } from '@env/environment';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 @Component({
   selector: 'gsk-web-details',
   standalone: true,
@@ -16,6 +18,8 @@ import { environment } from '@env/environment';
     NgxEchartsModule,
     NgScrollbarModule,
     NzListModule,
+    NzTableModule,
+    NzTabsModule,
     
   ],
   templateUrl: './web-details.component.html',
@@ -29,6 +33,9 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   isIPad = false;
   scrollbarMaxHeight = '95px';
 
+  // 跑马灯文字内容 - 今日任务提醒
+  marqueeText = '📋 任务提醒：需要需要对医生拜访。品牌:欧乐欣。拜访类型:打电话。描述:这是拜访备注.';
+
   // 图例数据状态
   legendData = [
     { name: 'p1', score: '54.6', trend: 'up', visible: true, color: 'rgb(41, 80, 141)' },
@@ -39,10 +46,10 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
 
   //项目数据
   projectData = [
-    { name: '001', score: '54.6', trend: 'up', des:'项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍' },
-    { name: '002', score: '54.6', trend: 'down', des:'项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍' },
-    { name: '003', score: '54.6', trend: 'up', des:'项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍' },
-    { name: '004', score: '54.6', trend: 'down', des:'项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍项目介绍' },
+    { name: '001', type: 'wechat', time: '2025-10-31',  des:'这是拜访备注-可能是没有拜访成功' },
+    { name: '002', type: 'phone', time: '2025-10-25', des:'这是拜访备注-可能是拜访成功' },
+    { name: '003', type: 'wechat', time: '2025-10-20',  des:'这是拜访备注-可能是拜访成功' },
+    { name: '004', type: 'phone', time: '2025-10-18',  des:'这是拜访备注-可能是拜访成功' },
   ];
   //医生能力 合作意向 影响力 观念
   doctorAbility = [
@@ -262,6 +269,11 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
       ];
     }
 
+    // 日历按钮点击事件
+    onCalendarClick() {
+      console.log('日历按钮被点击');
+      // TODO: 实现日历功能
+    }
 
 }
 

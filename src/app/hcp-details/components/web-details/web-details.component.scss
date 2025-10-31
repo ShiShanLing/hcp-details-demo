@@ -36,9 +36,21 @@ $theme-color: #33b5ff;
 .icon-xiangmu {
   color: $theme-color;
 }
+.icon-weixin {
+  color: #00B42A;
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.icon-dianhua1{
+  line-height: 30px;
+  color: #00A3EE;
+  font-size: 22px;
+}
 
 // 左侧：医生基本信息
 .left-section {
+  
 height: 100%;
   //添加背景图片
   background-position: top center; // 靠上居中显示
@@ -47,10 +59,107 @@ height: 100%;
   background-color: rgba(255, 255, 255, 0.9); // 使用background-color而不是background
   width: 24.14%;
   border-radius: 8px;
-  padding: 12px;
+  padding: 12px 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
+
+  .icon-05renwuguanli-renwurili-2{
+    margin-right: 0;
+  }
+
+  // 跑马灯容器 - 任务提醒，小而美的显眼样式（橙色/红色系）
+  .marquee-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    background: linear-gradient(135deg, #ff6b35, #ff8c42, #ff6b35);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    z-index: 10;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4), 0 0 12px rgba(255, 107, 53, 0.3);
+    animation: taskPulse 3s ease-in-out infinite;
+  }
+
+  .marquee-content {
+    display: flex;
+    white-space: nowrap;
+    animation: marquee 25s linear infinite;
+    will-change: transform;
+  }
+
+  .marquee-text {
+    display: inline-block;
+    padding: 0 60px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 36px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 6px rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.3px;
+  }
+
+  @keyframes taskPulse {
+    0%, 100% {
+      box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4), 0 0 12px rgba(255, 107, 53, 0.3);
+    }
+    50% {
+      box-shadow: 0 2px 10px rgba(255, 107, 53, 0.5), 0 0 16px rgba(255, 107, 53, 0.4);
+    }
+  }
+
+  // 日历按钮
+  .calendar-btn {
+    position: absolute;
+    top: 8px; // 默认位置（无跑马灯时）
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(51, 181, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 11; // 在跑马灯之上
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    
+    i {
+      font-size: 18px;
+      color: $theme-color;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 1);
+      box-shadow: 0 4px 12px rgba(51, 181, 255, 0.3);
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    // 有跑马灯时向下移动
+    &.with-marquee {
+      top: 42px; // 36px(跑马灯高度) + 6px间距
+    }
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
 
   .background-image {
     position: absolute;
@@ -63,7 +172,7 @@ height: 100%;
   .scrollbar{
     z-index: 1;
     left: 0;
-    top: 0;
+    top: 36px; // 为跑马灯留出空间（任务提醒高度）
     right: 0;
     bottom: 0;
     
@@ -71,6 +180,9 @@ height: 100%;
     position: absolute;
   }
   .doctor-basic-info {
+    padding: 0 12px;
+    padding-top: 12px; // 额外的顶部间距
+    
     h3 {
       margin: 0 0 1.5rem 0;
       color: #333;
@@ -739,10 +851,9 @@ height: 100%;
 :host ::ng-deep {
 
   //如果想要 不限制高度注释掉这个
-  .ant-list-items {
-    // max-height: 100px;
-
-  }
+  // .ant-list-items {
+  //   max-height: 100px;
+  // }
 
   .ant-list-bordered {
     margin-right: 0;
@@ -772,12 +883,14 @@ height: 100%;
     align-items: center;
     padding-bottom: 3px;
     padding: 0px 10px;
+    margin-top: 3px;
   }
 
   .ant-list-bordered {
     border-radius: 6px;
     margin-bottom: 3px;
     padding-bottom: 5px;
+    border: 1px solid #d9d9d9b3;
   }
 
   .ant-list-bordered.ant-list-sm .ant-list-item {
@@ -788,3 +901,67 @@ height: 100%;
 
 
 }
+
+
+
+:host ::ng-deep {
+
+  .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+    
+    font-weight: 500;
+}
+
+
+  .ant-tabs-content {
+    height: 100%;
+    .ant-tabs-tabpane{
+      height: 100%;
+    }
+  }
+
+  .ant-tabs > .ant-tabs-nav .ant-tabs-nav-list, .ant-tabs > div > .ant-tabs-nav .ant-tabs-nav-list{
+    gap: 5px;
+  }
+
+
+  .ant-tabs-left > .ant-tabs-content-holder > .ant-tabs-content > .ant-tabs-tabpane, .ant-tabs-left > div > .ant-tabs-content-holder > .ant-tabs-content > .ant-tabs-tabpane {
+    padding-left: 0px;
+  }
+  .ant-tabs-content-holder {
+    padding: 6px;
+    border: 1px solid #f0f0f0;
+    border-radius: 0;
+    border-top-color: transparent;
+    // padding-bottom: 0px;
+  }
+
+  .ant-list-split .ant-list-item {
+    border-bottom: none;
+  }
+
+  .ant-list-split .ant-list-header {
+    border-bottom: none;
+  }
+
+  .ant-tabs-top>.ant-tabs-nav,
+  .ant-tabs-bottom>.ant-tabs-nav,
+  .ant-tabs-top>div>.ant-tabs-nav,
+  .ant-tabs-bottom>div>.ant-tabs-nav {
+    margin: 0;
+  }
+
+  .ant-divider-horizontal {
+    margin: 12px 0;
+  }
+
+  .ant-tabs-left > .ant-tabs-nav{
+    min-width: 20px
+  }
+  .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab, .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab {
+      margin: 0;
+      padding: 5px 16px;
+  }
+
+
+}
+

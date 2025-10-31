@@ -1,7 +1,19 @@
 <div class="web-details-container">
     <!-- 左侧：医生基本信息 -->
     <div class="left-section" >
-
+        <!-- 跑马灯 -->
+        @if (marqueeText) {
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <span class="marquee-text">{{marqueeText}}</span>
+                <span class="marquee-text">{{marqueeText}}</span>
+            </div>
+        </div>
+        }
+        <!-- 日历按钮 -->
+        <button class="calendar-btn" [class.with-marquee]="marqueeText" (click)="onCalendarClick()">
+            <i class="iconfont icon-05renwuguanli-renwurili-2"></i>
+        </button>
         <img [src]="imgPath + 'beijing.jpg'" alt="背景图片" class="background-image">
         <ng-scrollbar>
             <div class="doctor-basic-info">
@@ -32,17 +44,13 @@
                 </div>
             </div>
         </ng-scrollbar>
-
     </div>
-
-
     <!-- 中间：图表评分信息 -->
     <div class="middle-section">
         <div class="header-box">
             <div class="tag"></div>
             <div class="title">评分结果</div>
         </div>
-
 
         <ng-scrollbar class="scrollbar">
             <div class="chart-container">
@@ -75,15 +83,10 @@
                 @for (project of projectData; track project.name; let i = $index) {
                     <div class="project-card">
                     <div class="project-header">
-                        <i class="iconfont icon-xiangmu"></i>
-                        <div class="project-name">{{project.name}}</div>
+                        <i [class]="['iconfont', project.type === 'wechat' ? 'icon-weixin' : 'icon-dianhua1']"></i>
+                        <div class="project-name">{{project.type === 'wechat' ? '微信' : '电话'}}</div>
                         <div class="spacing"></div>
-                         <div class="project-score">
-                             <span class="score">
-                                 {{project.score}}<span class="unit">分</span>
-                             </span>
-                             <i class="iconfont icon-up1"  [class]="project.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
-                         </div>
+                        <div class="project-time">{{project.time}}</div>
                     </div>
                     <div class="project-description">{{project.des}}</div>
                     </div>
@@ -97,20 +100,29 @@
     <div class="right-section">
         <div class="ai-analysis">
             <div class="ai-analysis-list">
-            @for (item of aiAnalysesResultList; track $index) {
-                <nz-list nzBordered nzSize="small">
-                  <nz-list-header>
-                    <!-- <div class="tag"></div> -->
-                    <i [class]="['iconfont', item.icon]" [style]="{fontSize: $index === 0 ? '16px' : '18px'}"></i>
-                    {{item.title}}</nz-list-header>
-                  <ng-scrollbar [style]="{'maxHeight': '95px'}">
-                    @for (item of item.list; track item) {
-                    <nz-list-item>{{item}}</nz-list-item>
-                    }
-                    
-                  </ng-scrollbar>
-                </nz-list>
-                }
+                <nz-tabset [style]="{'height': '100%'}" nzType="card" >
+                    <nz-tab class="medicine-tab" [nzTitle]="title">
+                      <ng-template #title>
+                        {{'微信分析'}}
+                      </ng-template>
+                      <ng-scrollbar>
+                        @for (item of aiAnalysesResultList; track $index) {
+                            <nz-list nzBordered nzSize="small">
+                              <nz-list-header>
+                                <!-- <div class="tag"></div> -->
+                                <i [class]="['iconfont', item.icon]" [style]="{fontSize: $index === 0 ? '16px' : '18px'}"></i>
+                                {{item.title}}</nz-list-header>
+                              <ng-scrollbar [style]="{'maxHeight': '75px'}">
+                                @for (item of item.list; track item) {
+                                <nz-list-item>{{item}}</nz-list-item>
+                                }
+                                
+                              </ng-scrollbar>
+                            </nz-list>
+                            }
+                      </ng-scrollbar>
+                    </nz-tab>
+                  </nz-tabset>
             </div>
             <!-- 医生能力评估 -->
             <div class="doctor-ability-cards">
