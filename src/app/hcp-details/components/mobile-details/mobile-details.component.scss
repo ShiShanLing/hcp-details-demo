@@ -210,19 +210,19 @@ $gray-dark: #333;
     .chart {
       width: 100%;
       height: 100%;
-      margin-left: -15px;
+      margin-left: -25px;
     }
 
     // 自定义图例 - 移动端优化
     .custom-legend {
       position: absolute;
       top: 0%;
-      right: 10px; // 移动端减少右边距
+      right: 5px; // 移动端减少右边距
       display: flex;
       flex-direction: column;
       z-index: 10;
       flex-wrap: wrap;
-      max-width: 200px; // 移动端减少最大宽度
+      max-width: 180px; // 移动端减少最大宽度
       width: auto; // 允许自适应宽度
 
       //平均分展示

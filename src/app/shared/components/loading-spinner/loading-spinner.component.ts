@@ -118,7 +118,7 @@ import { CommonModule } from '@angular/common';
     .wave-4 {
       animation-delay: 0.9s;
     }
-
+    
     /* 旋转的医疗符号 */
     .medical-symbols {
       position: absolute;
