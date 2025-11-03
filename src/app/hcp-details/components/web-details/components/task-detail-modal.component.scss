@@ -1,0 +1,69 @@
+.task-detail-content {
+  padding: 0px;
+  position: relative;
+}
+
+// 已完成印章样式
+.task-stamp {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  
+  .iconfont {
+    font-size: 80px;
+    color: #52c41a; // 绿色
+    opacity: 0.7; // 半透明效果，像印章
+    // transform: rotate(-15deg); // 稍微旋转，更像印章效果
+    pointer-events: none; // 不阻挡点击事件
+  }
+}
+
+.task-brand {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1890ff;
+}
+
+.task-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+
+  .iconfont {
+    font-size: 16px;
+    color: #1890ff;
+  }
+}
+
+.task-description {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.task-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+::ng-deep .ant-descriptions-item-label {
+  font-weight: 500;
+  width: 100px;
+}
+::ng-deep .task-detail-modal-wrapper {
+
+    .ant-modal-header {
+    padding: 12px 18px;
+  }
+  .ant-modal-body {
+    padding: 16px;
+  }
+  .ant-divider-horizontal {
+    margin: 18px 0;
+}
+}
+

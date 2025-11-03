@@ -1,0 +1,17 @@
+{
+  // SCSS 导入路径配置
+  "scss.lint.unknownAtRules": "ignore",
+  "files.associations": {
+    "*.scss": "scss"
+  },
+  "scss.completion.completePropertyWithSemicolon": true,
+  "scss.completion.triggerPropertyValueCompletion": true,
+  
+  // 配置 TypeScript/JavaScript 路径别名识别
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "javascript.preferences.importModuleSpecifier": "relative",
+  
+  // 注意：VS Code 的 SCSS 扩展可能不完全支持 includePaths
+  // 建议：如果需要 IDE 跳转，可以使用相对路径
+  // 或者安装 "SCSS IntelliSense" 扩展，它可能更好地支持路径解析
+}

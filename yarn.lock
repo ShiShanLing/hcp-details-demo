@@ -1413,6 +1413,37 @@
   resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.9.tgz#585624dc829cfb6e7c0aa6c3ca7d7e6daa87e34f"
   integrity sha512-PPOl1mi6lpLNQxnGoyAfschAodRFYXJ+9fs6WHXz7CSWKbOqiMZsubC+BQsVKuul+3vKLuwTHsS2c2y9EoKwxQ==
 
+"@fullcalendar/angular@^6.1.19":
+  version "6.1.19"
+  resolved "https://registry.npmjs.org/@fullcalendar/angular/-/angular-6.1.19.tgz#6203c892e5e61f74f30dddf5771e5a7a69bb3704"
+  integrity sha512-a3TmjKnF8xprH1aNgFn9zYehEhM4GBAyh+91SJymno2j1cE8D8z0+W1HNwtDekKWwJt/5YoinCvDTHydmF/kKw==
+  dependencies:
+    tslib "^2.3.0"
+
+"@fullcalendar/core@^6.1.19":
+  version "6.1.19"
+  resolved "https://registry.npmjs.org/@fullcalendar/core/-/core-6.1.19.tgz#60379111ba0cfb9fd9bc6594fee47cf855fc77b2"
+  integrity sha512-z0aVlO5e4Wah6p6mouM0UEqtRf1MZZPt4mwzEyU6kusaNL+dlWQgAasF2cK23hwT4cmxkEmr4inULXgpyeExdQ==
+  dependencies:
+    preact "~10.12.1"
+
+"@fullcalendar/daygrid@^6.1.19", "@fullcalendar/daygrid@~6.1.19":
+  version "6.1.19"
+  resolved "https://registry.npmjs.org/@fullcalendar/daygrid/-/daygrid-6.1.19.tgz#1d70a7f3f4cc13d3f27f55ed6880aae09a1a367b"
+  integrity sha512-IAAfnMICnVWPjpT4zi87i3FEw0xxSza0avqY/HedKEz+l5MTBYvCDPOWDATpzXoLut3aACsjktIyw9thvIcRYQ==
+
+"@fullcalendar/interaction@^6.1.19":
+  version "6.1.19"
+  resolved "https://registry.npmjs.org/@fullcalendar/interaction/-/interaction-6.1.19.tgz#48d85601a4203ede7cb400323fe5a9c163e28804"
+  integrity sha512-GOciy79xe8JMVp+1evAU3ytdwN/7tv35t5i1vFkifiuWcQMLC/JnLg/RA2s4sYmQwoYhTw/p4GLcP0gO5B3X5w==
+
+"@fullcalendar/timegrid@^6.1.19":
+  version "6.1.19"
+  resolved "https://registry.npmjs.org/@fullcalendar/timegrid/-/timegrid-6.1.19.tgz#bb4b2e3039c995b61284ee5b76ad9dcc696b71ce"
+  integrity sha512-OuzpUueyO9wB5OZ8rs7TWIoqvu4v3yEqdDxZ2VcsMldCpYJRiOe7yHWKr4ap5Tb0fs7Rjbserc/b6Nt7ol6BRg==
+  dependencies:
+    "@fullcalendar/daygrid" "~6.1.19"
+
 "@gulp-sourcemaps/identity-map@^2.0.1":
   version "2.0.1"
   resolved "https://registry.npmjs.org/@gulp-sourcemaps/identity-map/-/identity-map-2.0.1.tgz#a6e8b1abec8f790ec6be2b8c500e6e68037c0019"
@@ -7114,6 +7145,11 @@ postcss@^8.4.49, postcss@^8.5.6:
     nanoid "^3.3.11"
     picocolors "^1.1.1"
     source-map-js "^1.2.1"
+
+preact@~10.12.1:
+  version "10.12.1"
+  resolved "https://registry.npmjs.org/preact/-/preact-10.12.1.tgz#8f9cb5442f560e532729b7d23d42fd1161354a21"
+  integrity sha512-l8386ixSsBdbreOAkqtrwqHwdvR35ID8c3rKPa8lCWuO86dBi32QWHV4vfsZK1utLLFMvw+Z5Ad4XLkZzchscg==
 
 prepend-http@^1.0.1:
   version "1.0.4"

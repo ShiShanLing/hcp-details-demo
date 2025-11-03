@@ -1,0 +1,11 @@
+// 导入 Sass 颜色模块（用于颜色函数）
+@use "sass:color";
+
+// 主题色变量定义
+$theme-color: #33b5ff;
+
+// 其他主题相关变量可以在这里添加
+// 使用新的颜色函数替代已弃用的 lighten() 和 darken()
+$theme-color-light: color.scale($theme-color, $lightness: 10%);
+$theme-color-dark: color.scale($theme-color, $lightness: -10%);
+

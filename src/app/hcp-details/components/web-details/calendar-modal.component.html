@@ -1,0 +1,47 @@
+<div class="calendar-wrapper">
+  <!-- 年月跳转工具栏 - 使用年份和月份下拉框 -->
+  <div class="calendar-toolbar">
+    <div class="date-picker-wrapper">
+      <select
+        [(ngModel)]="selectedYear"
+        class="year-select"
+      >
+        @for (year of getYears(); track year) {
+          <option [value]="year">{{ year }}年</option>
+        }
+      </select>
+      <select
+        [(ngModel)]="selectedMonth"
+        class="month-select"
+      >
+        @for (month of months; track month) {
+          <option [value]="month">{{ getMonthName(month) }}</option>
+        }
+      </select>
+      <button
+        type="button"
+        class="jump-button"
+        (click)="gotoDate()"
+      >
+        跳转
+      </button>
+      <button
+        type="button"
+        class="today-button"
+        (click)="goToToday()"
+      >
+        今天
+      </button>
+    </div>
+  </div>
+  
+  <!-- 日历内容 -->
+  <div class="calendar-content">
+    @if (isShowCalendar) {
+      <full-calendar #fullCalendar [options]="calendarOptions"></full-calendar>
+    }@else{
+      <nz-spin [nzSpinning]="true"></nz-spin>
+    }
+  </div>
+</div>
+

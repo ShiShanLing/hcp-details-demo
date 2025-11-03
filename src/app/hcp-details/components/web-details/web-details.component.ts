@@ -10,6 +10,9 @@ import { LoadingService } from '@app/shared/services/loading.service';
 import { environment } from '@env/environment';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzModalModule, NzModalService, NzModalRef } from 'ng-zorro-antd/modal';
+import { CalendarModalComponent } from './calendar-modal.component';
+
 @Component({
   selector: 'gsk-web-details',
   standalone: true,
@@ -20,19 +23,20 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
     NzListModule,
     NzTableModule,
     NzTabsModule,
-    
+    NzModalModule
   ],
   templateUrl: './web-details.component.html',
   styleUrl: './web-details.component.scss'
 })
 export class WebDetailsComponent implements OnInit, OnDestroy {
   private chart: echarts.ECharts | null = null;
+  private calendarModalRef: NzModalRef | null = null; // 保存日历模态框的引用
   imgPath = environment.imgPath;
   
   // 检测是否为 iPad
   isIPad = false;
   scrollbarMaxHeight = '95px';
-
+  
   // 跑马灯文字内容 - 今日任务提醒
   marqueeText = '📋 任务提醒：需要需要对医生拜访。品牌:欧乐欣。拜访类型:打电话。描述:这是拜访备注.';
 
@@ -82,7 +86,8 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     private notificationService: NotificationService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private modal: NzModalService
   ) {
     // this.initChart();
   }
@@ -268,11 +273,37 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
         }
       ];
     }
-
+    //MARK:弹出日历
     // 日历按钮点击事件
     onCalendarClick() {
-      console.log('日历按钮被点击');
-      // TODO: 实现日历功能
+      this.calendarModalRef = this.modal.create({
+        nzTitle: '任务日历',
+        nzContent: CalendarModalComponent,
+        nzWidth: 1000,
+        nzStyle: { 
+          top: '20px',
+          height: 'calc(100vh - 40px)',
+          maxHeight: 'calc(100vh - 40px)',
+          overflow: 'hidden'
+        },
+        nzBodyStyle: {
+          height: 'calc(100% - 55px)',
+          overflow: 'auto', // 允许滚动，当内容超出时显示滚动条
+          padding: '0'
+        },
+        nzWrapClassName: 'calendar-modal-wrapper', // 使用类名方便查找
+        nzFooter: null,
+        nzClosable: true,
+        nzMaskClosable: true
+      });
+      
+      // 订阅模态框打开事件，设置ID
+      this.calendarModalRef.afterOpen.subscribe(() => {
+        const modalElement = this.calendarModalRef?.getElement();
+        if (modalElement) {
+          modalElement.setAttribute('id', 'calendar-modal');
+        }
+      });
     }
 
 }

@@ -1,5 +1,5 @@
-//创建scss变量主题色
-$theme-color: #33b5ff;
+// 导入全局主题变量（使用 @use 替代已弃用的 @import）
+@use "../../../../styles/variables" as *;
 :host{
   height: 100%;
   width: 100%;
