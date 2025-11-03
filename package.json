@@ -8,6 +8,7 @@
     "ng": "ng",
     "start": "n 24.7.0 && ng serve --open --port 4200",
     "build": "n 24.7.0 && ng build --configuration production --stats-json && gulp",
+    "build:ci": "ng build --configuration production --stats-json && gulp",
     "build:analyze": "ng build --configuration production --stats-json && npx webpack-bundle-analyzer dist/hcp-details-demo/stats.json",
     "test": "ng test",
     "test:watch": "ng test --watch",
