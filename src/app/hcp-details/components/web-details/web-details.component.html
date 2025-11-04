@@ -1,6 +1,6 @@
 <div class="web-details-container">
     <!-- 左侧：医生基本信息 -->
-    <div class="left-section" >
+    <div class="left-section">
         <!-- 跑马灯 -->
         @if (marqueeText) {
         <div class="marquee-container">
@@ -13,6 +13,9 @@
         <!-- 日历按钮 -->
         <button class="calendar-btn" [class.with-marquee]="marqueeText" (click)="onCalendarClick()">
             <i class="iconfont icon-05renwuguanli-renwurili-2"></i>
+            @if (hasTodayTask) {
+                <span class="task-badge"></span>
+            }
         </button>
         <img [src]="imgPath + 'beijing.jpg'" alt="背景图片" class="background-image">
         <ng-scrollbar>
@@ -49,7 +52,7 @@
     <div class="middle-section">
         <div class="header-box">
             <div class="tag"></div>
-            <div class="title">评分结果</div>
+            <div class="title">医生能力象限</div>
         </div>
 
         <ng-scrollbar class="scrollbar">
@@ -64,32 +67,41 @@
                     </div>
 
                     @for (item of legendData; track item.name; let i = $index) {
-                        <div class="legend-item"
-                            [class.disabled]="!item.visible" (click)="toggleLegend(i)">
-                            <div class="legend-color" [style.background-color]="item.color"></div>
-                            <div class="legend-text">
-                                <span class="legend-name">{{item.name}}</span>
-                                <span class="legend-score">{{item.score}}<span [style]="{'font-size': '11px'}">分</span>
-                                </span>
-                                <i class="iconfont icon-up1"
-                                    [class]="item.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
-                            </div>
+                    <div class="legend-item" [class.disabled]="!item.visible" (click)="toggleLegend(i)">
+                        <div class="legend-color" [style.background-color]="item.color"></div>
+                        <div class="legend-text">
+                            <span class="legend-name">{{item.name}}</span>
+                            <span class="legend-score">{{item.score}}<span [style]="{'font-size': '11px'}">分</span>
+                            </span>
+                            <i class="iconfont icon-up1"
+                                [class]="item.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
                         </div>
+                    </div>
                     }
                 </div>
             </div>
             <!-- 项目卡片展示 -->
             <div class="project-cards">
                 @for (project of projectData; track project.name; let i = $index) {
-                    <div class="project-card">
+                <div class="project-card" (click)="onProjectCardClick(project)" style="cursor: pointer;">
                     <div class="project-header">
                         <i [class]="['iconfont', project.type === 'wechat' ? 'icon-weixin' : 'icon-dianhua1']"></i>
                         <div class="project-name">{{project.type === 'wechat' ? '微信' : '电话'}}</div>
                         <div class="spacing"></div>
+                        <div class="project-score-wrapper">
+                            <span class="score-label">分数:</span>
+                            <span 
+                                class="project-score-display" 
+                                [class.clickable]="project.score !== undefined && project.score !== 100"
+                                (click)="onScoreClick(project, $event)"
+                            >
+                                {{ project.score !== undefined ? project.score : '-' }}
+                            </span>
+                        </div>
                         <div class="project-time">{{project.time}}</div>
                     </div>
-                    <div class="project-description">{{project.des}}</div>
-                    </div>
+                    <div class="project-description">{{project.des !== undefined ? project.des : '-'}}</div>
+                </div>
                 }
             </div>
         </ng-scrollbar>
@@ -100,40 +112,63 @@
     <div class="right-section">
         <div class="ai-analysis">
             <div class="ai-analysis-list">
-                <nz-tabset [style]="{'height': '100%'}" nzType="card" >
+                <nz-tabset [style]="{'height': '100%'}" nzType="card">
                     <nz-tab class="medicine-tab" [nzTitle]="title">
-                      <ng-template #title>
-                        {{'微信分析'}}
-                      </ng-template>
-                      <ng-scrollbar>
-                        @for (item of aiAnalysesResultList; track $index) {
+                        <ng-template #title>
+                            {{'通话分析'}}
+                        </ng-template>
+                        <ng-scrollbar>
+                            @for (item of phoneAnalysisResultList; track $index) {
                             <nz-list nzBordered nzSize="small">
-                              <nz-list-header>
-                                <!-- <div class="tag"></div> -->
-                                <i [class]="['iconfont', item.icon]" [style]="{fontSize: $index === 0 ? '16px' : '18px'}"></i>
-                                {{item.title}}</nz-list-header>
-                              <ng-scrollbar [style]="{'maxHeight': '75px'}">
-                                @for (item of item.list; track item) {
-                                <nz-list-item>{{item}}</nz-list-item>
-                                }
-                                
-                              </ng-scrollbar>
+                                <nz-list-header>
+                                    <!-- <div class="tag"></div> -->
+                                    <i [class]="['iconfont', item.icon]"
+                                        [style]="{fontSize: $index === 0 ? '16px' : '18px'}"></i>
+                                    {{item.title}}</nz-list-header>
+                                <ng-scrollbar [style]="{'maxHeight': '75px'}">
+                                    @for (item of item.list; track item) {
+                                    <nz-list-item>{{item}}</nz-list-item>
+                                    }
+                                </ng-scrollbar>
                             </nz-list>
                             }
-                      </ng-scrollbar>
+                        </ng-scrollbar>
                     </nz-tab>
-                  </nz-tabset>
+                    <nz-tab class="medicine-tab" [nzTitle]="title1">
+                        <ng-template #title1>
+                            {{'微信分析'}}
+                        </ng-template>
+                        <ng-scrollbar>
+                            @for (item of wechatAnalysisResultList; track $index) {
+                            <nz-list nzBordered nzSize="small">
+                                <nz-list-header>
+                                    <!-- <div class="tag"></div> -->
+                                    <i [class]="['iconfont', item.icon]"
+                                        [style]="{fontSize: $index === 0 ? '16px' : '18px'}"></i>
+                                    {{item.title}}</nz-list-header>
+                                <ng-scrollbar [style]="{'maxHeight': '75px'}">
+                                    @for (item of item.list; track item) {
+                                    <nz-list-item>{{item}}</nz-list-item>
+                                    }
+
+                                </ng-scrollbar>
+                            </nz-list>
+                            }
+                        </ng-scrollbar>
+                    </nz-tab>
+                </nz-tabset>
             </div>
             <!-- 医生能力评估 -->
             <div class="doctor-ability-cards">
                 @for (ability of doctorAbility; track ability.name; let i = $index) {
-                    <div class="ability-card">
+                <div class="ability-card">
                     <div class="ability-name">{{ability.name}}</div>
                     <div class="ability-value">
                         <span class="value">{{ability.value}}</span>
-                        <i class="iconfont icon-up1" [class]="ability.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
+                        <i class="iconfont icon-up1"
+                            [class]="ability.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
                     </div>
-                    </div>
+                </div>
                 }
             </div>
             <!-- 智能标签 -->
@@ -142,14 +177,13 @@
                 <ng-scrollbar [style]="{'flex': '1'}">
                     <div class="doctor-tags">
                         @for (tag of doctorTags; track tag.name; let i = $index) {
-                            <span class="tag"
-                                [style.background-color]="tag.color">
+                        <span class="tag" [style.background-color]="tag.color">
                             {{tag.name}}
-                            </span>
+                        </span>
                         }
                     </div>
                 </ng-scrollbar>
-                
+
             </div>
         </div>
 

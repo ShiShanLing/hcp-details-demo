@@ -3,11 +3,17 @@ import { appConfig } from './app/app.config';
 import { App } from './app/app';
 import { environment } from './environments/environment';
 
-if (environment.production) {
+// 检查是否为生产环境（支持多种检查方式，确保在生产构建时禁用 console）
+const isProduction = environment.production || 
+                     !location.hostname.includes('localhost') && 
+                     !location.hostname.includes('127.0.0.1') &&
+                     location.protocol === 'https:';
+
+if (isProduction) {
   // 在生产环境禁用大部分 console 输出，但保留 error 和 warn 用于错误和警告
   const noop = function() {};
   // 只禁用调试相关的 console 方法，保留 error 和 warn
-  const methods = ['log', 'info', 'debug', 'trace', 'dir', 'dirxml', 'table', 'group', 'groupEnd', 'groupCollapsed', 'clear', 'count', 'countReset', 'assert', 'profile', 'profileEnd', 'time', 'timeLog', 'timeEnd', 'timeStamp', 'context', 'memory'];
+  const methods = ['log', 'info', 'debug', 'trace', 'dir', 'dirxml', 'tabisProductionle', 'group', 'groupEnd', 'groupCollapsed', 'clear', 'count', 'countReset', 'assert', 'profile', 'profileEnd', 'time', 'timeLog', 'timeEnd', 'timeStamp', 'context', 'memory'];
   
   methods.forEach(method => {
     const methodName = method as keyof Console;

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import * as echarts from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import { getChartOption, getAiAnalysesResult } from './mock-data';
+import { getChartOption, getAiAnalysesResult, analysisResult } from './mock-data';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { BrowserWindowSizeChangeEnum, NotificationService } from '@app/services/notification.service';
 import { LoadingService } from '@app/shared/services/loading.service';
@@ -12,6 +12,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService, NzModalRef } from 'ng-zorro-antd/modal';
 import { CalendarModalComponent } from './calendar-modal.component';
+import { hasTodayTask, getDefaultCalendarEvents } from './calendar-data-handle';
+import { ScoreDeductionModalComponent, ScoreDeductionData } from './components/score-deduction-modal.component';
 
 @Component({
   selector: 'gsk-web-details',
@@ -32,6 +34,7 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   private chart: echarts.ECharts | null = null;
   private calendarModalRef: NzModalRef | null = null; // 保存日历模态框的引用
   imgPath = environment.imgPath;
+  hasTodayTask = false; // 今天是否有任务
   
   // 检测是否为 iPad
   isIPad = false;
@@ -48,12 +51,51 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
     { name: 'p4', score: '54.6', trend: 'down', visible: true, color: 'rgb(85, 184, 132)' }
   ];
 
+  // 扣分项配置 - key对应的扣分项名称
+  private p_new: { [key: string]: { desc: string; order: number; step: number } } = {
+    "q1": {
+      "desc": "拜访结果正确勾选",
+      "order": 1,
+      "step": 100
+    },
+    "q2": {
+      "desc": "服务规范",
+      "order": 2,
+      "step": 20
+    },
+    "q3": {
+      "desc": "知情同意",
+      "order": 3,
+      "step": 100
+    },
+    "q4": {
+      "desc": "医生信息确认",
+      "order": 4,
+      "step": 100
+    },
+    "q5": {
+      "desc": "RMR专属服务身份确认",
+      "order": 5,
+      "step": 100
+    },
+    "q6": {
+      "desc": "企微响应时间",
+      "order": 6,
+      "step": 20
+    }
+  };
+
   //项目数据
   projectData = [
-    { name: '001', type: 'wechat', time: '2025-10-31',  des:'这是拜访备注-可能是没有拜访成功' },
-    { name: '002', type: 'phone', time: '2025-10-25', des:'这是拜访备注-可能是拜访成功' },
-    { name: '003', type: 'wechat', time: '2025-10-20',  des:'这是拜访备注-可能是拜访成功' },
-    { name: '004', type: 'phone', time: '2025-10-18',  des:'这是拜访备注-可能是拜访成功' },
+    { name: '001', type: 'wechat', score: 100, time: '2025-10-31', des: '这是拜访备注-可能是没有拜访成功', aiResultId: '001' },
+    { name: '002', type: 'phone', score: undefined, time: '2025-10-25', des: undefined, aiResultId: '002' },
+    { name: '003', type: 'wechat', score: 100, time: '2025-10-20', des: '这是拜访备注-可能是拜访成功', aiResultId: '003' },
+    { name: '004', type: 'phone', score: 80, time: '2025-10-18', des: '有效拜访,拜访结果正确勾选', aiResultId: '004', "s_detail": {
+      "q2": {
+          "s": -20,
+          "n": ""
+      }
+  } },
   ];
   //医生能力 合作意向 影响力 观念
   doctorAbility = [
@@ -82,7 +124,8 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
     return colors[Math.floor(Math.random() * colors.length)];
   }
 
-  aiAnalysesResultList = [] as any[];
+  phoneAnalysisResultList = [] as any[]; // 电话分析结果
+  wechatAnalysisResultList = [] as any[]; // 微信分析结果
 
   constructor(
     private notificationService: NotificationService,
@@ -97,12 +140,19 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
     // 检测是否为 iPad
     this.detectIPad();
     
+    // 检查今天是否有任务（通过创建临时日历组件实例）
+    this.checkTodayTask();
+    
     // 使用 setTimeout 确保 DOM 已经渲染完成
     setTimeout(() => {
       this.initChart();
     }, 0);
 
-    this.aiAnalysesResultList = this.handleAiAnalysesResult(getAiAnalysesResult().gpt?.qc?.med);
+    // 默认显示第一个项目的AI分析结果
+    // 初始化微信分析数据（第一个项目是微信类型）
+    this.loadAiAnalysisResult('001', 'wechat');
+    // 初始化电话分析数据（第二个项目是电话类型）
+    this.loadAiAnalysisResult('002', 'phone');
 
     //监听屏幕宽度
     this.notificationService.subscribeToBrowserWindowSizeChange(BrowserWindowSizeChangeEnum.HcpDetails, (message: any) => {
@@ -221,6 +271,35 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // 加载指定项目的AI分析结果
+  loadAiAnalysisResult(aiResultId: string, projectType: string) {
+    const result = analysisResult.find(item => item.id === aiResultId);
+    if (result && result.gpt?.qc?.med) {
+      const analysisData = this.handleAiAnalysesResult(result.gpt.qc.med);
+      // 根据项目类型分别存储到对应的数组
+      if (projectType === 'phone') {
+        this.phoneAnalysisResultList = analysisData;
+      } else if (projectType === 'wechat') {
+        this.wechatAnalysisResultList = analysisData;
+      }
+    } else {
+      // 如果没有找到对应的AI结果，使用默认数据
+      const defaultData = this.handleAiAnalysesResult(getAiAnalysesResult().gpt?.qc?.med);
+      if (projectType === 'phone') {
+        this.phoneAnalysisResultList = defaultData;
+      } else if (projectType === 'wechat') {
+        this.wechatAnalysisResultList = defaultData;
+      }
+    }
+  }
+
+  // 处理项目卡片点击事件
+  onProjectCardClick(project: any) {
+    if (project.aiResultId && project.type) {
+      this.loadAiAnalysisResult(project.aiResultId, project.type);
+    }
+  }
+
     //处理ai分析结果
     handleAiAnalysesResult(aiAnalysesResult: any): any[] {
       return [
@@ -273,9 +352,80 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
         }
       ];
     }
+    //MARK:检查今天是否有任务
+    private checkTodayTask() {
+      // 使用默认的任务事件数据检查今天是否有任务
+      const defaultEvents = getDefaultCalendarEvents();
+      this.hasTodayTask = hasTodayTask(defaultEvents);
+    }
+
     //MARK:弹出日历
     // 日历按钮点击事件
-    onCalendarClick() {
+    // 处理分数点击事件
+  onScoreClick(project: any, event: Event) {
+    // 阻止事件冒泡，防止触发项目卡片点击
+    event.stopPropagation();
+    
+    // 如果分数是100或undefined，不处理
+    if (project.score === undefined || project.score === 100) {
+      return;
+    }
+
+    // 构建扣分数据
+    const deductionItems: any[] = [];
+    let totalDeduction = 0;
+
+    // 解析 s_detail 字段（如果存在）
+    if (project.s_detail) {
+      Object.keys(project.s_detail).forEach(key => {
+        const detail = project.s_detail[key];
+        if (detail && detail.s) {
+          const deduction = Math.abs(detail.s); // 取绝对值
+          totalDeduction += deduction;
+          
+          // 从 p_new 中获取扣分项名称
+          const itemName = this.p_new[key]?.desc || key;
+          
+          deductionItems.push({
+            item: itemName,
+            reason: detail.n || '',
+            score: deduction
+          });
+        }
+      });
+    }
+
+    // 如果没有s_detail，根据总分和当前分数计算总扣分
+    if (deductionItems.length === 0) {
+      totalDeduction = 100 - project.score;
+      deductionItems.push({
+        item: '扣分项',
+        reason: '未提供详细扣分明细',
+        score: totalDeduction
+      });
+    }
+
+    const scoreData: ScoreDeductionData = {
+      projectName: `${project.type === 'wechat' ? '微信' : '电话'} - ${project.name}`,
+      totalScore: 100,
+      currentScore: project.score,
+      deductionItems: deductionItems,
+      remark: project.des
+    };
+
+    // 打开扣分详情模态框
+    this.modal.create({
+      nzTitle: '扣分详情',
+      nzContent: ScoreDeductionModalComponent,
+      nzData: scoreData,
+      nzWidth: 600,
+      nzFooter: null,
+      
+      nzClassName: 'score-deduction-modal-wrapper'
+    });
+  }
+
+  onCalendarClick() {
       this.calendarModalRef = this.modal.create({
         nzTitle: '任务日历',
         nzContent: CalendarModalComponent,
@@ -295,6 +445,11 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
         nzFooter: null,
         nzClosable: true,
         nzMaskClosable: true
+      });
+      
+      // 当模态框关闭后，重新检查今天是否有任务
+      this.calendarModalRef.afterClose.subscribe(() => {
+        this.checkTodayTask();
       });
       
       // 订阅模态框打开事件，设置ID

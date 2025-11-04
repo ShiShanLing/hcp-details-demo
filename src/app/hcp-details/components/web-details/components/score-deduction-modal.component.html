@@ -1,0 +1,45 @@
+<div class="score-deduction-content">
+  <!-- 分数概览 -->
+
+
+  <!-- 扣分明细表格 -->
+  <div class="deduction-table">
+    <nz-table class="table" nzShowPagination="false" nzShowSizeChanger [nzPageSize]="10"
+      [nzData]="scoreData.deductionItems" nzTableLayout="fixed">
+      <thead>
+        <tr>
+          <th>{{'评分点'}}<span class="thead-subtitle"></span>
+          </th>
+          <th nzWidth="140px">{{'人工评分'}}<span class="thead-subtitle">{{'(扣分)'}}</span>
+          </th>
+          <th nzEllipsis>{{'评语'}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of scoreData.deductionItems">
+          <td>{{ data.item }}</td>
+          <td>
+            <div class="score-slider-box">
+              -{{data.score}}
+            </div>
+          </td>
+          <td nzEllipsis>
+            <div class="add-remark-box">
+              <div class="text" nz-tooltip [nzTooltipTitle]="data.reason">{{data.reason.length?
+                data.reason:'一' }}</div>
+            </div>
+
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+
+  <!-- 备注信息 -->
+  @if (scoreData.remark) {
+  <div class="remark-section">
+    <div class="remark-label">总体评价：</div>
+    <div class="remark-content">{{ scoreData.remark }}</div>
+  </div>
+  }
+</div>

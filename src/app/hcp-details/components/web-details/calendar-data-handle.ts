@@ -101,6 +101,146 @@ export function getTaskColor(taskType: string, isCompleted: boolean = false): st
 // ==================== 任务数据处理 ====================
 
 /**
+ * 获取默认的任务事件列表（用于初始化检查）
+ */
+export function getDefaultCalendarEvents(): any[] {
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const dayAfterTomorrow = new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0];
+  const fourDaysLater = new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0];
+  const sevenDaysLater = new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  
+  return [
+    {
+      id: 'task-001',
+      title: '欧乐欣',
+      extendedProps: {
+        taskId: 'task-001',
+        brand: '欧乐欣',
+        icon: TaskIcon.CallDoctor,
+        taskType: TaskType.CallDoctor,
+        taskDescription: '这是拜访备注-可能是没有拜访成功',
+        isCompleted: false
+      },
+      start: today,
+      color: getTaskColor(TaskType.CallDoctor, false)
+    },
+    {
+      id: 'task-1011',
+      title: '欧乐欣',
+      extendedProps: {
+        taskId: 'task-1011',
+        brand: '欧乐欣',
+        icon: TaskIcon.CallDoctor,
+        taskType: TaskType.CallDoctor,
+        taskDescription: '这是拜访备注-可能是没有拜访成功',
+        isCompleted: false
+      },
+      start: tomorrow,
+      color: getTaskColor(TaskType.CallDoctor, false)
+    },
+    {
+      id: 'task-2011',
+      title: '欧乐欣',
+      extendedProps: {
+        taskId: 'task-2011',
+        brand: '欧乐欣',
+        icon: TaskIcon.CallDoctor,
+        taskType: TaskType.CallDoctor,
+        taskDescription: '这是拜访备注-可能是没有拜访成功',
+        isCompleted: false
+      },
+      start: dayAfterTomorrow,
+      color: getTaskColor(TaskType.CallDoctor, false)
+    },
+    {
+      id: 'task-3011',
+      title: '欧乐欣',
+      extendedProps: {
+        taskId: 'task-3011',
+        brand: '欧乐欣',
+        icon: TaskIcon.CallDoctor,
+        taskType: TaskType.CallDoctor,
+        taskDescription: '这是拜访备注-可能是没有拜访成功',
+        isCompleted: false
+      },
+      start: fourDaysLater,
+      color: getTaskColor(TaskType.CallDoctor, false)
+    },
+    {
+      id: 'task-002',
+      title: '全再乐',
+      extendedProps: {
+        taskId: 'task-002',
+        brand: '全再乐',
+        icon: TaskIcon.WriteArticle,
+        taskType: TaskType.WriteArticle,
+        taskDescription: '这是文章备注-可能是没有文章成功',
+        isCompleted: false
+      },
+      start: today,
+      color: getTaskColor(TaskType.WriteArticle, false)
+    },
+    {
+      id: 'task-003',
+      title: '舒利迭',
+      extendedProps: {
+        taskId: 'task-003',
+        brand: '舒利迭',
+        icon: TaskIcon.SendWechat,
+        taskType: TaskType.SendWechat,
+        taskDescription: '这是微信备注-可能是没有微信成功',
+        isCompleted: false
+      },
+      start: sevenDaysLater,
+      color: getTaskColor(TaskType.SendWechat, false)
+    },
+    {
+      id: 'task-004',
+      title: '测试朋友圈',
+      extendedProps: {
+        taskId: 'task-004',
+        brand: '测试品牌',
+        icon: TaskIcon.SendCircle,
+        taskType: TaskType.SendCircle,
+        taskDescription: '这是朋友圈备注-测试朋友圈功能',
+        isCompleted: false
+      },
+      start: today,
+      color: getTaskColor(TaskType.SendCircle, false)
+    },
+    {
+      id: 'task-005',
+      title: '已完成任务-欧乐欣',
+      extendedProps: {
+        taskId: 'task-005',
+        brand: '欧乐欣',
+        icon: TaskIcon.CallDoctor,
+        taskType: TaskType.CallDoctor,
+        taskDescription: '这是已完成的拜访任务',
+        isCompleted: true,
+        processedTime: new Date().toLocaleString('zh-CN'),
+        processedBy: '李四'
+      },
+      start: yesterday,
+      color: getTaskColor(TaskType.CallDoctor, true)
+    },
+  ];
+}
+
+/**
+ * 检查今天是否有任务
+ */
+export function hasTodayTask(events: any[]): boolean {
+  const today = new Date().toISOString().split('T')[0];
+  return events.some((event: any) => {
+    const eventDate = event.start ? new Date(event.start).toISOString().split('T')[0] : '';
+    return eventDate === today;
+  });
+}
+
+/**
  * 从 FullCalendar 事件构建 TaskDetailData
  */
 export function buildTaskDetailData(event: any, extendedProps: any): TaskDetailData {

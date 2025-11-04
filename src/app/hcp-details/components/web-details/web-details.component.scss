@@ -136,6 +136,18 @@ height: 100%;
       color: $theme-color;
     }
 
+    // 小红点（任务提醒）
+    .task-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff4d4f;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
     &:hover {
       background: rgba(255, 255, 255, 1);
       box-shadow: 0 4px 12px rgba(51, 181, 255, 0.3);
@@ -149,6 +161,18 @@ height: 100%;
     // 有跑马灯时向下移动
     &.with-marquee {
       top: 42px; // 36px(跑马灯高度) + 6px间距
+    }
+  }
+
+  // 小红点脉冲动画
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.1);
     }
   }
 
@@ -582,6 +606,47 @@ height: 100%;
       font-size: 16px;
       font-weight: bold;
       color: #333;
+    }
+
+    .project-score-wrapper {
+      display: flex;
+      align-items: center;
+      margin-right: 5px;
+      gap: 0px;
+
+      .score-label {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.65);
+        font-weight: 500;
+      }
+    }
+
+    .project-score-display {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.65);
+      font-weight: 500;
+      min-width: 30px;
+      text-align: center;
+
+      &.clickable {
+        color: #1890ff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          color: #40a9ff;
+          text-decoration: underline;
+        }
+
+        &:active {
+          color: #096dd9;
+        }
+      }
+    }
+
+    .project-time {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.65);
     }
 
     .project-score {

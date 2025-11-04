@@ -21,6 +21,7 @@ import {
   TaskColor,
   getTaskColor,
   buildTaskDetailData,
+  hasTodayTask,
   escapeHtml,
   calculatePanelPositionByElement,
   calculatePanelPositionByElementWithHeight,
@@ -91,6 +92,13 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
   
   //MARK:处理文档点击事件（点击空白处关闭面板）
   private handleDocumentClick = (event: MouseEvent) => {
+    // 检查是否有确认弹框显示（通过检查是否有 .ant-modal-confirm 元素）
+    const confirmModal = document.querySelector('.ant-modal-confirm');
+    if (confirmModal) {
+      // 如果有确认弹框显示，不关闭任务处理面板
+      return;
+    }
+    
     // 检查点击的元素是否在任务处理面板内
     const target = event.target as HTMLElement;
     const taskPanel = document.querySelector('.task-detail-panel-permanent');
@@ -119,6 +127,12 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
   // 根据任务类型和完成状态获取对应的颜色（使用外部函数）
   getTaskColor = getTaskColor;
 
+  //MARK:检查今天是否有任务
+  hasTodayTask(): boolean {
+    return hasTodayTask(this.calendarEvents);
+  }
+
+  // 初始化日历事件（使用共享的默认事件数据）
   calendarEvents: EventInput[] = [
     {
       id: 'task-001', // 添加唯一ID
@@ -902,11 +916,19 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       nzOkText: '确认处理',
       nzCancelText: '取消',
       nzOnOk: () => {
-        return this.doCompleteTask();
+        // 确认处理，处理成功后关闭面板
+        return this.doCompleteTask().then(() => {
+          // 处理成功后关闭任务处理面板
+          this.closeTaskDetailPanel();
+        });
+      },
+      nzOnCancel: () => {
+        // 取消时，不关闭任务处理面板
+        return;
       }
     });
   }
-  
+
   //MARK:执行处理任务（确认后调用）
   private doCompleteTask(): Promise<void> {
     return new Promise((resolve) => {
@@ -975,31 +997,31 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       const eTaskId = e.id || (e.extendedProps as any)?.taskId;
       return eTaskId === updatedData.taskId;
     });
-    if (index !== -1) {
-      const originalEvent = this.calendarEvents[index] as any;
-      if (originalEvent.extendedProps) {
-        originalEvent.extendedProps = {
-          ...originalEvent.extendedProps,
-          isCompleted: true,
-          processedTime: updatedData.processedTime,
-          processedBy: updatedData.processedBy
-        };
-        originalEvent.color = this.getTaskColor(originalEvent.extendedProps.taskType, true);
+        if (index !== -1) {
+          const originalEvent = this.calendarEvents[index] as any;
+          if (originalEvent.extendedProps) {
+            originalEvent.extendedProps = {
+              ...originalEvent.extendedProps,
+              isCompleted: true,
+              processedTime: updatedData.processedTime,
+              processedBy: updatedData.processedBy
+            };
+            originalEvent.color = this.getTaskColor(originalEvent.extendedProps.taskType, true);
       }
     }
-    
+
     // 使用 FullCalendar API 更新事件
     const api = this.calendarComponent?.getApi();
     if (api) {
       const event = api.getEventById(updatedData.taskId);
       if (event) {
         const extendedProps = event.extendedProps as any;
-        event.setProp('color', this.getTaskColor(extendedProps.taskType, true));
-        event.setExtendedProp('isCompleted', true);
-        event.setExtendedProp('processedTime', updatedData.processedTime);
-        event.setExtendedProp('processedBy', updatedData.processedBy);
-      }
-      
+      event.setProp('color', this.getTaskColor(extendedProps.taskType, true));
+      event.setExtendedProp('isCompleted', true);
+      event.setExtendedProp('processedTime', updatedData.processedTime);
+      event.setExtendedProp('processedBy', updatedData.processedBy);
+    }
+
       // 重新渲染
       api.render();
     }
