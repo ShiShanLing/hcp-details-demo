@@ -444,21 +444,30 @@
   pointer-events: auto;
   display: block !important;
   
-  // 位置未计算完成时，保持不可见，避免闪烁
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none; // 位置未准备好时，禁用鼠标事件
-  // 不使用 transition，避免位置变化时的闪烁
-  // transition: opacity 0.15s ease-out, visibility 0.15s ease-out;
-  
-  // 位置计算完成后，显示面板
-  &.panel-position-ready {
+  // 任务处理面板（点击显示）默认可见
+  &.task-detail-panel-permanent {
     opacity: 1;
     visibility: visible;
-    pointer-events: auto; // 恢复鼠标事件
+    pointer-events: auto;
     animation: panelFadeIn 0.2s ease-out;
-    // 位置更新和显示同时进行，添加平滑过渡
-    transition: opacity 0.15s ease-out;
+  }
+  
+  // 任务简介面板（悬停显示）需要等待位置计算完成
+  &.task-intro-panel {
+    // 位置未计算完成时，保持不可见，避免闪烁
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; // 位置未准备好时，禁用鼠标事件
+    
+    // 位置计算完成后，显示面板
+    &.panel-position-ready {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto; // 恢复鼠标事件
+      animation: panelFadeIn 0.2s ease-out;
+      // 位置更新和显示同时进行，添加平滑过渡
+      transition: opacity 0.15s ease-out;
+    }
   }
   
   @keyframes panelFadeIn {

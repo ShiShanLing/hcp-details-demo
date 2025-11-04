@@ -668,7 +668,7 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         this.isPanelPositionReady = false; // 重置位置状态
         this.cdr.markForCheck();
       }
-    }, 300); // 延迟0.3秒，与任务元素移出保持一致
+    }, 500); // 延迟0.3秒，与任务元素移出保持一致
   }
   
   //MARK:处理任务
