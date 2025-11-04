@@ -423,8 +423,9 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       const currentTaskId = this.currentTaskData.taskId;
       const newTaskId = extendedProps.taskId || event.id || '';
       
-      // 如果鼠标移入的是同一个任务，不更新（避免重复触发）
+      // 如果鼠标移入的是同一个任务，清除隐藏定时器，保持面板显示（从面板移回任务时）
       if (currentTaskId === newTaskId) {
+        clearHideTimeout(this.timeoutManager); // 清除隐藏定时器，保持面板显示
         return;
       }
       
