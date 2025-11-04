@@ -126,5 +126,5 @@ gulp.task('clean_file', function (cb) {
   }
 });
 
-//默认执行函数
-gulp.task('default', gulp.series( 'fileGzip', 'moveFile', 'moveImg', 'moveFont', 'renameFileName'));
+//默认执行函数（在打包后移除 console.log）
+gulp.task('default', gulp.series('removeConsoleLog', 'fileGzip', 'moveFile', 'moveImg', 'moveFont', 'renameFileName'));
