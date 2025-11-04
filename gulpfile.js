@@ -102,6 +102,14 @@ gulp.task('renameFileName', function() {
     .pipe(gulp.dest('./dist-gzip'));
 });
 
+// 移除所有 console.log（额外保险，确保移除所有 console）
+gulp.task('removeConsoleLog', function() {
+  return gulp.src(['./dist/browser/**/*.js'])
+    .pipe(replace(/console\.(log|info|debug|warn|error|trace)\([^)]*\);?/g, ''))
+    .pipe(replace(/console\.(log|info|debug|warn|error|trace)\([^)]*\)/g, ''))
+    .pipe(gulp.dest('./dist/browser'));
+});
+
 // 打包之后清空 file 文件夹
 gulp.task('clean_file', function (cb) {
   try {
