@@ -102,11 +102,37 @@ gulp.task('renameFileName', function() {
     .pipe(gulp.dest('./dist-gzip'));
 });
 
-// 移除所有 console.log（额外保险，确保移除所有 console）
+// 移除所有 console.log（更安全的正则，避免破坏语法）
 gulp.task('removeConsoleLog', function() {
   return gulp.src(['./dist/browser/**/*.js'])
-    .pipe(replace(/console\.(log|info|debug|warn|error|trace)\([^)]*\);?/g, ''))
-    .pipe(replace(/console\.(log|info|debug|warn|error|trace)\([^)]*\)/g, ''))
+    .pipe(through.obj(function(file, encode, cb) {
+      if (file.isNull()) {
+        return cb(null, file);
+      }
+      
+      if (file.isStream()) {
+        return cb(new Error('Streaming not supported'));
+      }
+      
+      let content = file.contents.toString('utf8');
+      
+      // 更安全的移除方式：移除整行 console 语句（包括前导空格和分号）
+      // 匹配模式：可选空格 + console.xxx(...) + 可选分号 + 换行
+      content = content.replace(/^\s*console\.(log|info|debug|warn|error|trace|dir|dirxml|table|trace|group|groupEnd|groupCollapsed|clear|count|countReset|assert|profile|profileEnd|time|timeLog|timeEnd|timeStamp|context|memory)\([^)]*\);\s*/gm, '');
+      
+      // 移除行内 console（需要更小心，避免破坏语法）
+      // 只移除独立的 console 语句，保留可能作为函数参数的 console
+      content = content.replace(/console\.(log|info|debug|warn|error|trace|dir|dirxml|table|trace|group|groupEnd|groupCollapsed|clear|count|countReset|assert|profile|profileEnd|time|timeLog|timeEnd|timeStamp|context|memory)\([^)]*\);/g, '');
+      
+      // 清理可能产生的多余逗号（修复常见的语法错误）
+      // 移除对象或数组中的多余逗号
+      content = content.replace(/,(\s*[}\]])/g, '$1'); // 移除对象/数组末尾的逗号
+      content = content.replace(/([,\s]),+/g, '$1'); // 移除连续的逗号
+      
+      file.contents = Buffer.from(content, 'utf8');
+      this.push(file);
+      cb();
+    }))
     .pipe(gulp.dest('./dist/browser'));
 });
 
