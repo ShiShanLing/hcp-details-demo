@@ -126,16 +126,20 @@ export function buildTaskDetailData(event: any, extendedProps: any): TaskDetailD
 export interface PanelPositionConfig {
   panelWidth?: number;
   panelHeight?: number;
+  offsetX?: number; // 水平方向偏移（面板距离任务元素的水平间距）
+  offsetY?: number; // 垂直方向偏移（面板距离任务元素的垂直间距）
+  // 为了向后兼容，保留 offset（如果设置了 offset，会同时应用到 offsetX 和 offsetY）
   offset?: number;
 }
 
 /**
  * 默认面板位置配置
  */
-const DEFAULT_PANEL_CONFIG: Required<PanelPositionConfig> = {
+const DEFAULT_PANEL_CONFIG: Required<Omit<PanelPositionConfig, 'offset'>> = {
   panelWidth: 350,
   panelHeight: 300,
-  offset: -5 // 任务简介面板距离任务元素的间距（x和y轴都是20px）
+  offsetX: 0, // 任务简介面板距离任务元素的水平间距
+  offsetY: -60  // 任务简介面板距离任务元素的垂直间距
 };
 
 /**
@@ -148,12 +152,16 @@ export function calculatePanelPositionByElementWithHeight(
 ): { top: string; left: string } | null {
   if (!element) return null;
   
-  const { panelWidth, offset } = { ...DEFAULT_PANEL_CONFIG, ...config };
+  // 处理向后兼容：如果设置了 offset，应用到 offsetX 和 offsetY
+  const offsetX = config.offsetX !== undefined ? config.offsetX : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetX);
+  const offsetY = config.offsetY !== undefined ? config.offsetY : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetY);
+  const { panelWidth } = { ...DEFAULT_PANEL_CONFIG, ...config };
+  
   const elementRect = element.getBoundingClientRect();
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   
-  // 水平方向计算
+  // 水平方向计算（使用 offsetX）
   let left: number;
   const spaceOnRight = viewportWidth - elementRect.right;
   const spaceOnLeft = elementRect.left;
@@ -162,39 +170,39 @@ export function calculatePanelPositionByElementWithHeight(
   const isElementOnLeft = elementCenterX < viewportCenterX;
   
   if (isElementOnLeft) {
-    if (spaceOnRight >= panelWidth + offset) {
-      left = elementRect.right + offset;
-    } else if (spaceOnLeft >= panelWidth + offset) {
-      left = elementRect.left - panelWidth - offset;
+    if (spaceOnRight >= panelWidth + offsetX) {
+      left = elementRect.right + offsetX;
+    } else if (spaceOnLeft >= panelWidth + offsetX) {
+      left = elementRect.left - panelWidth - offsetX;
     } else {
       left = spaceOnRight > spaceOnLeft ? viewportWidth - panelWidth - 10 : 10;
     }
   } else {
-    if (spaceOnLeft >= panelWidth + offset) {
-      left = elementRect.left - panelWidth - offset;
-    } else if (spaceOnRight >= panelWidth + offset) {
-      left = elementRect.right + offset;
+    if (spaceOnLeft >= panelWidth + offsetX) {
+      left = elementRect.left - panelWidth - offsetX;
+    } else if (spaceOnRight >= panelWidth + offsetX) {
+      left = elementRect.right + offsetX;
     } else {
       left = spaceOnLeft > spaceOnRight ? 10 : viewportWidth - panelWidth - 10;
     }
   }
   
-  // 垂直方向计算（使用实际高度）
+  // 垂直方向计算（使用实际高度和 offsetY）
   let top: number;
   const spaceBelow = viewportHeight - elementRect.bottom;
   const spaceAbove = elementRect.top;
   
-  if (spaceBelow >= actualPanelHeight + offset) {
-    top = elementRect.bottom + offset;
-  } else if (spaceAbove >= actualPanelHeight + offset) {
+  if (spaceBelow >= actualPanelHeight + offsetY) {
+    top = elementRect.bottom + offsetY;
+  } else if (spaceAbove >= actualPanelHeight + offsetY) {
     // 使用实际高度计算，让面板底部对齐到元素顶部
-    top = elementRect.top - actualPanelHeight - offset;
+    top = elementRect.top - actualPanelHeight - offsetY;
   } else {
     if (spaceBelow >= spaceAbove) {
-      const preferredTop = elementRect.bottom + offset;
+      const preferredTop = elementRect.bottom + offsetY;
       top = preferredTop + actualPanelHeight <= viewportHeight ? preferredTop : viewportHeight - actualPanelHeight - 10;
     } else {
-      const preferredTop = elementRect.top - actualPanelHeight - offset;
+      const preferredTop = elementRect.top - actualPanelHeight - offsetY;
       top = preferredTop >= 10 ? preferredTop : Math.max(10, elementRect.top - actualPanelHeight);
     }
   }
@@ -220,7 +228,11 @@ export function calculatePanelPositionByElement(
 ): { top: string; left: string } | null {
   if (!element) return null;
   
-  const { panelWidth, panelHeight, offset } = { ...DEFAULT_PANEL_CONFIG, ...config };
+  // 处理向后兼容：如果设置了 offset，应用到 offsetX 和 offsetY
+  const offsetX = config.offsetX !== undefined ? config.offsetX : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetX);
+  const offsetY = config.offsetY !== undefined ? config.offsetY : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetY);
+  const { panelWidth, panelHeight } = { ...DEFAULT_PANEL_CONFIG, ...config };
+  
   const elementRect = element.getBoundingClientRect();
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
@@ -228,7 +240,7 @@ export function calculatePanelPositionByElement(
   let left: number;
   let top: number;
   
-  // 水平方向计算
+  // 水平方向计算（使用 offsetX）
   const spaceOnRight = viewportWidth - elementRect.right;
   const spaceOnLeft = elementRect.left;
   const elementCenterX = elementRect.left + elementRect.width / 2;
@@ -236,37 +248,37 @@ export function calculatePanelPositionByElement(
   const isElementOnLeft = elementCenterX < viewportCenterX;
   
   if (isElementOnLeft) {
-    if (spaceOnRight >= panelWidth + offset) {
-      left = elementRect.right + offset;
-    } else if (spaceOnLeft >= panelWidth + offset) {
-      left = elementRect.left - panelWidth - offset;
+    if (spaceOnRight >= panelWidth + offsetX) {
+      left = elementRect.right + offsetX;
+    } else if (spaceOnLeft >= panelWidth + offsetX) {
+      left = elementRect.left - panelWidth - offsetX;
     } else {
       left = spaceOnRight > spaceOnLeft ? viewportWidth - panelWidth - 10 : 10;
     }
   } else {
-    if (spaceOnLeft >= panelWidth + offset) {
-      left = elementRect.left - panelWidth - offset;
-    } else if (spaceOnRight >= panelWidth + offset) {
-      left = elementRect.right + offset;
+    if (spaceOnLeft >= panelWidth + offsetX) {
+      left = elementRect.left - panelWidth - offsetX;
+    } else if (spaceOnRight >= panelWidth + offsetX) {
+      left = elementRect.right + offsetX;
     } else {
       left = spaceOnLeft > spaceOnRight ? 10 : viewportWidth - panelWidth - 10;
     }
   }
   
-  // 垂直方向计算
+  // 垂直方向计算（使用 offsetY）
   const spaceBelow = viewportHeight - elementRect.bottom;
   const spaceAbove = elementRect.top;
   
-  if (spaceBelow >= panelHeight + offset) {
-    top = elementRect.bottom + offset;
-  } else if (spaceAbove >= panelHeight + offset) {
-    top = elementRect.top - panelHeight - offset;
+  if (spaceBelow >= panelHeight + offsetY) {
+    top = elementRect.bottom + offsetY;
+  } else if (spaceAbove >= panelHeight + offsetY) {
+    top = elementRect.top - panelHeight - offsetY;
   } else {
     if (spaceBelow >= spaceAbove) {
-      const preferredTop = elementRect.bottom + offset;
+      const preferredTop = elementRect.bottom + offsetY;
       top = preferredTop + panelHeight <= viewportHeight ? preferredTop : viewportHeight - panelHeight - 10;
     } else {
-      const preferredTop = elementRect.top - panelHeight - offset;
+      const preferredTop = elementRect.top - panelHeight - offsetY;
       if (preferredTop >= 10) {
         top = preferredTop;
       } else {
@@ -304,26 +316,30 @@ export function calculatePanelPositionByRect(
   rect: DOMRect,
   config: PanelPositionConfig = {}
 ): { top: string; left: string } {
-  const { panelWidth, panelHeight, offset } = { ...DEFAULT_PANEL_CONFIG, ...config };
+  // 处理向后兼容：如果设置了 offset，应用到 offsetX 和 offsetY
+  const offsetX = config.offsetX !== undefined ? config.offsetX : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetX);
+  const offsetY = config.offsetY !== undefined ? config.offsetY : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetY);
+  const { panelWidth, panelHeight } = { ...DEFAULT_PANEL_CONFIG, ...config };
+  
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   
-  let left = rect.right + offset;
-  let top = rect.top + offset;
+  let left = rect.right + offsetX;
+  let top = rect.top + offsetY;
   
   // 如果右边空间不够，显示在左边
   if (left + panelWidth > viewportWidth) {
-    left = rect.left - panelWidth - offset;
+    left = rect.left - panelWidth - offsetX;
   }
   
   // 如果下边空间不够，显示在上边
   if (top + panelHeight > viewportHeight) {
-    top = rect.bottom - panelHeight - offset;
+    top = rect.bottom - panelHeight - offsetY;
   }
   
   // 确保不超出边界
-  if (left < 0) left = offset;
-  if (top < 0) top = offset;
+  if (left < 0) left = offsetX;
+  if (top < 0) top = offsetY;
   
   return {
     left: `${left}px`,

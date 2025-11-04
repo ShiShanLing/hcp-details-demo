@@ -434,10 +434,8 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
           return;
         }
         
-        // 鼠标不在面板内部，清除当前面板，让新任务开始计时
-        // 先清除隐藏定时器，避免面板被隐藏
-        clearHideTimeout(this.timeoutManager);
-        // 清除当前面板的显示
+        // 鼠标不在面板内部，立即清除当前面板，让新任务开始计时
+        // 不清除 hideIntroTimeout，让旧任务的延迟隐藏正常执行（虽然面板已经被清除，但定时器会正常完成）
         this.showTaskIntroPanel = false;
         this.currentTaskData = null;
         this.isPanelPositionReady = false;
@@ -446,18 +444,19 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         clearShowTimeout(this.timeoutManager);
       } else if (!arg.jsEvent) {
         // 如果没有鼠标事件信息，但面板显示且是不同的任务
-        // 清除当前面板，让新任务开始计时
-        clearHideTimeout(this.timeoutManager);
+        // 立即清除当前面板，让新任务开始计时
+        // 不清除 hideIntroTimeout，让旧任务的延迟隐藏正常执行
         this.showTaskIntroPanel = false;
         this.currentTaskData = null;
         this.isPanelPositionReady = false;
         this.cdr.markForCheck();
+        // 清除显示定时器，让新任务重新开始计时
         clearShowTimeout(this.timeoutManager);
       }
     }
     
-    // 清除所有定时器（使用外部函数）
-    clearAllTimeouts(this.timeoutManager);
+    // 只清除显示定时器，不清除隐藏定时器（让旧任务的延迟隐藏正常执行）
+    clearShowTimeout(this.timeoutManager);
     
     // 提取事件数据（使用外部函数）
     const { event, extendedProps, eventId, eventElementId } = extractEventData(arg);
