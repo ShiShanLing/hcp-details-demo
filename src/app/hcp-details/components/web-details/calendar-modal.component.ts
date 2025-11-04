@@ -8,7 +8,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { CalendarOptions, EventInput } from '@fullcalendar/core';
 import zhCnLocale from '@fullcalendar/core/locales/zh-cn';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzTagModule } from 'ng-zorro-antd/tag';
@@ -78,12 +78,21 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     hideIntroTimeout: undefined
   };
   
+  autoClickTodayTask: boolean = false; // 是否自动点击今天的任务
+
   constructor(
     private cdr: ChangeDetectorRef, 
     private ngZone: NgZone,
     private modal: NzModalService,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private modalRef: NzModalRef
   ) {
+    // 从模态框配置中获取参数
+    const config = this.modalRef.getConfig();
+    if (config.nzData) {
+      this.autoClickTodayTask = config.nzData.autoClickTodayTask || false;
+    }
+    
     // 监听点击事件，点击空白处关闭任务处理面板
     this.ngZone.runOutsideAngular(() => {
       document.addEventListener('click', this.handleDocumentClick);
@@ -143,7 +152,8 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         icon: TaskIcon.CallDoctor,
         taskType: TaskType.CallDoctor,
         taskDescription: '这是拜访备注-可能是没有拜访成功',
-        isCompleted: false // 未完成
+        isCompleted: false, // 未完成
+        displayOrder: 0 // 跑马灯任务，优先级最高，确保显示在最上面
       },
       start: new Date().toISOString().split('T')[0],
       color: this.getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
@@ -199,7 +209,8 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         icon: TaskIcon.WriteArticle,
         taskType: TaskType.WriteArticle,
         taskDescription: '这是文章备注-可能是没有文章成功',
-        isCompleted: false // 未完成
+        isCompleted: false, // 未完成
+        displayOrder: 1 // 显示顺序
       },
       start: new Date().toISOString().split('T')[0],
       color: this.getTaskColor(TaskType.WriteArticle, false) // 使用配置的颜色
@@ -227,7 +238,8 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         icon: TaskIcon.SendCircle,
         taskType: TaskType.SendCircle,
         taskDescription: '这是朋友圈备注-测试朋友圈功能',
-        isCompleted: false // 未完成
+        isCompleted: false, // 未完成
+        displayOrder: 2 // 显示顺序
       },
       start: new Date().toISOString().split('T')[0],
       color: this.getTaskColor(TaskType.SendCircle, false) // 使用配置的颜色
@@ -265,6 +277,12 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     selectable: false, // 禁用选择日期范围
     dayMaxEvents: true,
     weekends: true,
+    // 事件排序：按 displayOrder 排序，确保跑马灯任务（欧乐欣）显示在最上面
+    eventOrder: (a: any, b: any) => {
+      const orderA = a.extendedProps?.displayOrder ?? 999;
+      const orderB = b.extendedProps?.displayOrder ?? 999;
+      return orderA - orderB;
+    },
     height: '100%', // 使用100%填充父容器，通过CSS min-height限制最小高度
     contentHeight: 'auto', // 内容高度自动
             // 点击事件：显示任务处理面板
@@ -359,6 +377,11 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       // 延迟初始化鼠标事件，等待日历完全渲染
       setTimeout(() => {
         this.initEventMouseHandlers();
+        
+        // 如果需要自动点击今天的任务
+        if (this.autoClickTodayTask) {
+          this.autoClickTodayFirstTask();
+        }
       }, 200);
     }, 100);
     
@@ -368,29 +391,26 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       api.on('eventsSet', () => {
         setTimeout(() => {
           this.initEventMouseHandlers();
+          
+          // 如果需要自动点击今天的任务
+          if (this.autoClickTodayTask) {
+            this.autoClickTodayFirstTask();
+          }
         }, 100);
       });
       
 
       setTimeout(() => {
         this.initEventMouseHandlers();
+        
+        // 如果需要自动点击今天的任务
+        if (this.autoClickTodayTask) {
+          this.autoClickTodayFirstTask();
+        }
       }, 600);
       
     
-    }
-    // setTimeout(() => {
-      
-    //   this.updateCalendarSize();
-    // }, 100);
-    
-    // setTimeout(() => {
-    //   this.updateCalendarSize();
-    // }, 300);
-    
-    // setTimeout(() => {
-    //   this.updateCalendarSize();
-    // }, 500);
-    
+    }    
     // 使用 ResizeObserver 监听容器尺寸变化
     if (typeof ResizeObserver !== 'undefined') {
       const wrapper = document.querySelector('.calendar-wrapper');
@@ -705,6 +725,69 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     this.showTaskDetailPanel = false;
     this.currentTaskData = null;
     this.cdr.markForCheck();
+  }
+
+  //MARK:自动点击今天的第一个任务
+  autoClickTodayFirstTask(): void {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // 查找今天的任务
+    const todayEvents = this.calendarEvents.filter((event: any) => {
+      if (!event.start) return false;
+      const eventDate = new Date(event.start);
+      eventDate.setHours(0, 0, 0, 0);
+      const eventDateStr = eventDate.toISOString().split('T')[0];
+      return eventDateStr === todayStr;
+    });
+    
+    if (todayEvents.length > 0) {
+      // 选择第一个任务
+      const firstEvent = todayEvents[0];
+      const eventId = firstEvent.id || firstEvent.extendedProps?.['taskId'];
+      
+      if (eventId && this.calendarComponent?.getApi()) {
+        const api = this.calendarComponent.getApi();
+        const event = api.getEventById(eventId);
+        
+        if (event) {
+          // 等待一小段时间确保DOM完全渲染
+          setTimeout(() => {
+            // 查找对应的DOM元素
+            const eventElement = document.querySelector(`[data-event-id="${eventId}"], .fc-event[data-event-id="${eventId}"]`);
+            if (!eventElement) {
+              // 如果找不到，尝试通过FullCalendar的API获取
+              const allEventElements = document.querySelectorAll('.fc-event');
+              for (let i = 0; i < allEventElements.length; i++) {
+                const el = allEventElements[i] as HTMLElement;
+                const elEvent = api.getEventById(el.getAttribute('data-event-id') || '');
+                if (elEvent && elEvent.id === eventId) {
+                  // 创建模拟的点击事件
+                  const mockEvent = {
+                    event: event,
+                    el: el,
+                    jsEvent: new MouseEvent('click', { bubbles: true, cancelable: true }),
+                    view: api.view
+                  };
+                  this.handleEventClick(mockEvent);
+                  return;
+                }
+              }
+            } else {
+              // 创建模拟的点击事件
+              const mockEvent = {
+                event: event,
+                el: eventElement,
+                jsEvent: new MouseEvent('click', { bubbles: true, cancelable: true }),
+                view: api.view
+              };
+              this.handleEventClick(mockEvent);
+            }
+          }, 300);
+        }
+      }
+    }
   }
   
   //MARK:初始化事件鼠标处理器（保留作为备用，现在主要使用 FullCalendar 的 eventMouseEnter/Leave）

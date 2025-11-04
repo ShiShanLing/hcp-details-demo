@@ -126,6 +126,7 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
 
   phoneAnalysisResultList = [] as any[]; // 电话分析结果
   wechatAnalysisResultList = [] as any[]; // 微信分析结果
+  currentAnalysisTabIndex = 0; // 当前选中的分析tab索引：0=通话分析，1=微信分析
 
   constructor(
     private notificationService: NotificationService,
@@ -279,16 +280,24 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
       // 根据项目类型分别存储到对应的数组
       if (projectType === 'phone') {
         this.phoneAnalysisResultList = analysisData;
+        // 切换到通话分析 tab
+        this.currentAnalysisTabIndex = 0;
       } else if (projectType === 'wechat') {
         this.wechatAnalysisResultList = analysisData;
+        // 切换到微信分析 tab
+        this.currentAnalysisTabIndex = 1;
       }
     } else {
       // 如果没有找到对应的AI结果，使用默认数据
       const defaultData = this.handleAiAnalysesResult(getAiAnalysesResult().gpt?.qc?.med);
       if (projectType === 'phone') {
         this.phoneAnalysisResultList = defaultData;
+        // 切换到通话分析 tab
+        this.currentAnalysisTabIndex = 0;
       } else if (projectType === 'wechat') {
         this.wechatAnalysisResultList = defaultData;
+        // 切换到微信分析 tab
+        this.currentAnalysisTabIndex = 1;
       }
     }
   }
@@ -299,7 +308,6 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
       this.loadAiAnalysisResult(project.aiResultId, project.type);
     }
   }
-
     //处理ai分析结果
     handleAiAnalysesResult(aiAnalysesResult: any): any[] {
       return [
@@ -358,7 +366,6 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
       const defaultEvents = getDefaultCalendarEvents();
       this.hasTodayTask = hasTodayTask(defaultEvents);
     }
-
     //MARK:弹出日历
     // 日历按钮点击事件
     // 处理分数点击事件
@@ -424,11 +431,13 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
       nzClassName: 'score-deduction-modal-wrapper'
     });
   }
-
-  onCalendarClick() {
+  onCalendarClick(autoClickTodayTask: boolean = false) {
       this.calendarModalRef = this.modal.create({
         nzTitle: '任务日历',
         nzContent: CalendarModalComponent,
+        nzData: {
+          autoClickTodayTask: autoClickTodayTask
+        },
         nzWidth: 1000,
         nzStyle: { 
           top: '20px',
@@ -460,6 +469,12 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
         }
       });
     }
+
+  // 处理跑马灯点击事件
+  onMarqueeClick() {
+    // 打开日历并自动点击今天的任务
+    this.onCalendarClick(true);
+  }
 
 }
 
