@@ -13,6 +13,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { TaskDetailData } from './components/task-detail-modal.component';
 import {
   TaskType,
@@ -75,7 +76,8 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef, 
     private ngZone: NgZone,
-    private modal: NzModalService
+    private modal: NzModalService,
+    private message: NzMessageService
   ) {
     // 监听点击事件，点击空白处关闭任务处理面板
     this.ngZone.runOutsideAngular(() => {
@@ -739,6 +741,11 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         
         // 更新日历中的事件（使用保存的副本）
         this.updateCalendarEvent(taskData);
+        
+        // 显示成功提示
+        this.message.success('任务已完成', {
+          nzDuration: 2000 // 2秒后自动关闭
+        });
         
         // 触发变更检测
         this.cdr.markForCheck();
