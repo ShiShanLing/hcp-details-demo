@@ -133,6 +133,9 @@
 }
 
 ::ng-deep .calendar-modal-wrapper {
+  td.ant-descriptions-item-label{
+    white-space: nowrap;
+  }
   // 模态框遮罩层：允许点击关闭，但阻止触摸事件穿透
   .ant-modal-mask {
     touch-action: none;
@@ -391,6 +394,10 @@
     border-radius: 4px;
     border: none;
     min-height: 50px; // 确保有足够高度
+    cursor: pointer; // 显示为可点击，但实际上通过悬停触发
+    
+    // 阻止点击时的默认行为（通过CSS辅助）
+    pointer-events: auto;
     
     .fc-event-title {
       padding: 0;
@@ -418,6 +425,111 @@
 
   .ant-modal-header {
     padding: 12px 18px;
+  }
+}
+
+// 任务详情浮动面板样式
+.task-detail-panel {
+  position: fixed !important;
+  z-index: 99999 !important; // 确保在模态框之上
+  width: 350px;
+  max-width: calc(100vw - 20px);
+  max-height: calc(100vh - 20px);
+  background: #fff !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  animation: panelFadeIn 0.2s ease-out;
+  overflow: hidden;
+  pointer-events: auto;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+  
+  @keyframes panelFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  .task-detail-content {
+    padding: 16px;
+    position: relative;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    
+    // 已完成印章样式
+    .task-stamp {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 10;
+      pointer-events: none;
+      
+      .iconfont {
+        font-size: 60px;
+        color: #52c41a;
+        opacity: 0.7;
+      }
+    }
+    
+    .task-brand {
+      font-weight: 600;
+      font-size: 16px;
+      color: $theme-color;
+
+    }
+    
+    .task-type {
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      
+      .iconfont {
+        font-size: 16px;
+        color: $theme-color;
+      }
+    }
+    
+    .task-description {
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+      color: rgba(0, 0, 0, 0.85);
+      font-size: 13px;
+    }
+    
+    .task-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      
+      button {
+        width: 100%;
+      }
+    }
+    
+    // 调整 ng-zorro 组件样式
+    ::ng-deep {
+      .ant-descriptions-item-label {
+        font-weight: 500;
+        width: 80px;
+      }
+      
+      .ant-divider-horizontal {
+        margin: 12px 0;
+      }
+      
+      .ant-descriptions-bordered .ant-descriptions-item-label {
+        background-color: #fafafa;
+      }
+    }
   }
 }
 

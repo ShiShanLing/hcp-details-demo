@@ -43,5 +43,63 @@
       <nz-spin [nzSpinning]="true"></nz-spin>
     }
   </div>
+  
+  <!-- 任务详情浮动面板 -->
+  @if (showTaskPanel && currentTaskData) {
+    <div 
+      class="task-detail-panel"
+      [style.top]="panelPosition.top"
+      [style.left]="panelPosition.left"
+      [style.display]="showTaskPanel ? 'block' : 'none'"
+      (mouseenter)="handlePanelMouseEnter()"
+      (mouseleave)="handlePanelMouseLeave()">
+      <div class="task-detail-content">
+        <!-- 已完成印章图标 -->
+        @if(currentTaskData.isCompleted) {
+          <div class="task-stamp">
+            <i class="iconfont icon-yichuli"></i>
+          </div>
+        }
+
+        <!-- 任务基本信息 -->
+        <nz-descriptions [nzColumn]="1" nzBordered [nzSize]="'small'">
+          <nz-descriptions-item nzTitle="品牌">
+            <span class="task-brand">{{ currentTaskData.brand }}</span>
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="任务类型">
+            <span class="task-type">
+              @if (currentTaskData.icon) {
+                <i class="iconfont {{ currentTaskData.icon }}"></i>
+              }
+              {{ currentTaskData.taskType }}
+            </span>
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="任务描述">
+            <div class="task-description">{{ currentTaskData.taskDescription || '无' }}</div>
+          </nz-descriptions-item>
+          @if(currentTaskData.isCompleted && currentTaskData.processedBy) {
+            <nz-descriptions-item nzTitle="处理人">
+              {{ currentTaskData.processedBy }}
+            </nz-descriptions-item>
+          }
+          @if(currentTaskData.isCompleted && currentTaskData.processedTime) {
+            <nz-descriptions-item nzTitle="处理时间">
+              {{ currentTaskData.processedTime }}
+            </nz-descriptions-item>
+          }
+        </nz-descriptions>
+
+        <!-- 操作按钮 -->
+        @if(!currentTaskData.isCompleted) {
+          <nz-divider></nz-divider>
+          <div class="task-actions">
+            <button nz-button nzType="primary" [nzLoading]="panelProcessing" (click)="handleCompleteTask()">
+              <span>处理任务</span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
 </div>
 
