@@ -44,16 +44,72 @@
     }
   </div>
   
-  <!-- 任务详情浮动面板 -->
-  @if (showTaskPanel && currentTaskData) {
+  <!-- 任务简介浮动面板（悬停显示，无处理按钮） -->
+  @if (showTaskIntroPanel && currentTaskData && !showTaskDetailPanel) {
     <div 
-      class="task-detail-panel"
+      class="task-detail-panel task-intro-panel"
+      [class.panel-position-ready]="isPanelPositionReady"
       [style.top]="panelPosition.top"
       [style.left]="panelPosition.left"
-      [style.display]="showTaskPanel ? 'block' : 'none'"
-      (mouseenter)="handlePanelMouseEnter()"
-      (mouseleave)="handlePanelMouseLeave()">
+      (mouseenter)="handleIntroPanelMouseEnter()"
+      (mouseleave)="handleIntroPanelMouseLeave()">
       <div class="task-detail-content">
+        <!-- 已完成印章图标 -->
+        @if(currentTaskData.isCompleted) {
+          <div class="task-stamp">
+            <i class="iconfont icon-yichuli"></i>
+          </div>
+        }
+        <!-- 未完成图标 -->
+        @if(!currentTaskData.isCompleted) {
+          <div class="task-stamp task-stamp-incomplete">
+            <i class="iconfont icon-weichuli"></i>
+          </div>
+        }
+
+        <!-- 任务基本信息 -->
+        <nz-descriptions [nzColumn]="1" nzBordered [nzSize]="'small'">
+          <nz-descriptions-item nzTitle="品牌">
+            <span class="task-brand">{{ currentTaskData.brand }}</span>
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="任务类型">
+            <span class="task-type">
+              @if (currentTaskData.icon) {
+                <i class="iconfont {{ currentTaskData.icon }}"></i>
+              }
+              {{ currentTaskData.taskType }}
+            </span>
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="任务描述">
+            <div class="task-description">{{ currentTaskData.taskDescription || '无' }}</div>
+          </nz-descriptions-item>
+          @if(currentTaskData.isCompleted && currentTaskData.processedBy) {
+            <nz-descriptions-item nzTitle="处理人">
+              {{ currentTaskData.processedBy }}
+            </nz-descriptions-item>
+          }
+          @if(currentTaskData.isCompleted && currentTaskData.processedTime) {
+            <nz-descriptions-item nzTitle="处理时间">
+              {{ currentTaskData.processedTime }}
+            </nz-descriptions-item>
+          }
+        </nz-descriptions>
+      </div>
+    </div>
+  }
+  
+  <!-- 任务处理浮动面板（点击显示，有处理按钮） -->
+  @if (showTaskDetailPanel && currentTaskData) {
+    <div 
+      class="task-detail-panel task-detail-panel-permanent"
+      [style.top]="panelPosition.top"
+      [style.left]="panelPosition.left">
+      <div class="task-detail-content">
+        <!-- 关闭按钮 -->
+        <div class="task-panel-close" (click)="closeTaskDetailPanel()">
+          <i class="iconfont icon-guanbi"></i>
+        </div>
+        
         <!-- 已完成印章图标 -->
         @if(currentTaskData.isCompleted) {
           <div class="task-stamp">
@@ -63,6 +119,9 @@
 
         <!-- 任务基本信息 -->
         <nz-descriptions [nzColumn]="1" nzBordered [nzSize]="'small'">
+          <nz-descriptions-item nzTitle="时间">
+            <span >{{ currentTaskData.startDate }}</span>
+          </nz-descriptions-item>
           <nz-descriptions-item nzTitle="品牌">
             <span class="task-brand">{{ currentTaskData.brand }}</span>
           </nz-descriptions-item>

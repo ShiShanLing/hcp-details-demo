@@ -367,6 +367,8 @@
     }
     
     .fc-event-desc {
+      // 禁用浏览器默认的 tooltip（问号）
+      pointer-events: none; // 阻止鼠标事件，避免显示问号
       color: rgba(255, 255, 255, 0.85);
       font-size: 10px;
       line-height: 1.4;
@@ -380,7 +382,7 @@
       text-overflow: ellipsis;
       word-break: break-word;
       max-height: 2.8em; // 限制高度为2行
-      cursor: help; // 鼠标悬停时显示帮助光标
+      cursor: default; // 使用默认光标，不再显示问号
       
       &.has-tooltip {
         position: relative;
@@ -438,12 +440,26 @@
   background: #fff !important;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
-  animation: panelFadeIn 0.2s ease-out;
   overflow: hidden;
   pointer-events: auto;
-  visibility: visible !important;
-  opacity: 1 !important;
   display: block !important;
+  
+  // 位置未计算完成时，保持不可见，避免闪烁
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; // 位置未准备好时，禁用鼠标事件
+  // 不使用 transition，避免位置变化时的闪烁
+  // transition: opacity 0.15s ease-out, visibility 0.15s ease-out;
+  
+  // 位置计算完成后，显示面板
+  &.panel-position-ready {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto; // 恢复鼠标事件
+    animation: panelFadeIn 0.2s ease-out;
+    // 位置更新和显示同时进行，添加平滑过渡
+    transition: opacity 0.15s ease-out;
+  }
   
   @keyframes panelFadeIn {
     from {
@@ -465,7 +481,7 @@
     // 已完成印章样式
     .task-stamp {
       position: absolute;
-      top: 0;
+      top: 35px; // 向下移动，避免被关闭按钮遮挡
       right: 0;
       z-index: 10;
       pointer-events: none;
@@ -474,6 +490,15 @@
         font-size: 60px;
         color: #52c41a;
         opacity: 0.7;
+      }
+      
+      // 未完成图标样式
+      &.task-stamp-incomplete {
+        .iconfont {
+          color: #ff9800; // 橙色表示未完成
+          opacity: 0.7;
+          font-size: 55px;
+        }
       }
     }
     
@@ -512,6 +537,33 @@
       
       button {
         width: 100%;
+      }
+    }
+    
+    // 关闭按钮样式
+    .task-panel-close {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+      background: rgba(233, 233, 233, 1);
+      transition: all 0.2s;
+      z-index: 20;
+      border: 3px solid white;
+      
+      &:hover {
+        background: rgba(0, 0, 0, 0.18);
+      }
+      
+      .iconfont {
+        font-size: 20px;
+        color: rgba(0, 0, 0, 0.65);
       }
     }
     
