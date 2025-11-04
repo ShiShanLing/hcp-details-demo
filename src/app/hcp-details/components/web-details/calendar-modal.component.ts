@@ -574,8 +574,27 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       return;
     }
     
-    // 清除显示定时器（使用外部函数）
-    clearShowTimeout(this.timeoutManager);
+    // 提取事件数据，检查是否是等待显示的任务
+    const { event, extendedProps, eventId } = extractEventData(arg);
+    const leavingTaskId = extendedProps.taskId || event.id || '';
+    
+    // 如果当前离开的任务正是等待显示的任务，不清除倒计时（保持倒计时继续）
+    // 这样可以避免快速移动时（A->B->C->D），D任务的倒计时被清除导致面板不显示
+    if (this.pendingTaskData && this.pendingTaskData.taskId === leavingTaskId) {
+      // 这是等待显示的任务，不清除倒计时，让它继续倒计时
+      return;
+    }
+    
+    // 如果有等待显示的任务，且倒计时已经开始（showIntroTimeout已设置）
+    // 不清除倒计时，因为倒计时是针对等待显示的任务的
+    // 这样可以避免快速移动时（A->B->C->D），在倒计时期间离开任务导致面板不显示
+    if (this.pendingTaskData && this.timeoutManager.showIntroTimeout) {
+      // 倒计时已经开始，不清除倒计时，让它继续倒计时
+      // 但如果是离开等待显示的任务本身，已经在上面返回了
+    } else {
+      // 清除显示定时器（使用外部函数）
+      clearShowTimeout(this.timeoutManager);
+    }
     
     // 如果简介面板已经显示，延迟隐藏（给用户时间移动到面板上）
     if (this.showTaskIntroPanel) {
