@@ -11,6 +11,7 @@ import { environment } from '@env/environment';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService, NzModalRef } from 'ng-zorro-antd/modal';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { CalendarModalComponent } from './calendar-modal.component';
 import { hasTodayTask, getDefaultCalendarEvents } from './calendar-data-handle';
 import { ScoreDeductionModalComponent, ScoreDeductionData } from './components/score-deduction-modal.component';
@@ -25,7 +26,8 @@ import { ScoreDeductionModalComponent, ScoreDeductionData } from './components/s
     NzListModule,
     NzTableModule,
     NzTabsModule,
-    NzModalModule
+    NzModalModule,
+    NzTooltipModule
   ],
   templateUrl: './web-details.component.html',
   styleUrl: './web-details.component.scss'
@@ -89,7 +91,7 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   projectData = [
     { name: '001', type: 'wechat', score: 100, time: '2025-10-31', des: '这是拜访备注-可能是没有拜访成功', aiResultId: '001' },
     { name: '002', type: 'phone', score: undefined, time: '2025-10-25', des: undefined, aiResultId: '002' },
-    { name: '003', type: 'wechat', score: 100, time: '2025-10-20', des: '这是拜访备注-可能是拜访成功', aiResultId: '003' },
+    { name: '003', type: 'wechat', score: 100, time: '2025-10-20', des: '这是拜访备注-可能是拜访成功很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长长很长很长很长很长很长很长很长很长长很长很长很长很长很长很长很长很长', aiResultId: '003' },
     { name: '004', type: 'phone', score: 80, time: '2025-10-18', des: '有效拜访,拜访结果正确勾选', aiResultId: '004', "s_detail": {
       "q2": {
           "s": -20,

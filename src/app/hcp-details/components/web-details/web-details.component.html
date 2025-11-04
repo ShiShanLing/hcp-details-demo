@@ -14,7 +14,7 @@
         <button class="calendar-btn" [class.with-marquee]="marqueeText" (click)="onCalendarClick()">
             <i class="iconfont icon-05renwuguanli-renwurili-2"></i>
             @if (hasTodayTask) {
-                <span class="task-badge"></span>
+            <span class="task-badge"></span>
             }
         </button>
         <img [src]="imgPath + 'beijing.jpg'" alt="背景图片" class="background-image">
@@ -89,17 +89,22 @@
                         <div class="spacing"></div>
                         <div class="project-score-wrapper">
                             <span class="score-label">分数:</span>
-                            <span 
-                                class="project-score-display" 
+                            <span class="project-score-display"
                                 [class.clickable]="project.score !== undefined && project.score !== 100"
-                                (click)="onScoreClick(project, $event)"
-                            >
+                                [nz-tooltip]="project.score !== undefined && project.score !== 100 ? '查看细节' : null"
+                                nzTooltipPlacement="top"
+                                (click)="onScoreClick(project, $event)">
                                 {{ project.score !== undefined ? project.score : '-' }}
                             </span>
                         </div>
                         <div class="project-time">{{project.time}}</div>
                     </div>
-                    <div class="project-description">{{project.des !== undefined ? project.des : '-'}}</div>
+                    <div class="project-description" 
+                         [nz-tooltip]="project.des !== undefined && project.des !== '-' ? project.des : null"
+                         nzTooltipPlacement="top"
+                         nzTooltipTrigger="hover">
+                        {{project.des !== undefined ? project.des : '-'}}
+                    </div>
                 </div>
                 }
             </div>
