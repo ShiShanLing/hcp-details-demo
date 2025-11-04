@@ -51,6 +51,7 @@
       [class.panel-position-ready]="isPanelPositionReady"
       [style.top]="panelPosition.top"
       [style.left]="panelPosition.left"
+      [attr.data-current-task-id]="currentTaskData.taskId"
       (mouseenter)="handleIntroPanelMouseEnter()"
       (mouseleave)="handleIntroPanelMouseLeave()">
       <div class="task-detail-content">

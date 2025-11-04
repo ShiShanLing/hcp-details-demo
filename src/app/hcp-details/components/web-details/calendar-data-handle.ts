@@ -139,7 +139,7 @@ const DEFAULT_PANEL_CONFIG: Required<Omit<PanelPositionConfig, 'offset'>> = {
   panelWidth: 350,
   panelHeight: 300,
   offsetX: 0, // 任务简介面板距离任务元素的水平间距
-  offsetY: -60  // 任务简介面板距离任务元素的垂直间距
+  offsetY: -62  // 任务简介面板距离任务元素的垂直间距
 };
 
 /**
@@ -666,7 +666,16 @@ export function initEventMouseHandlers(
               mouseY >= panelRect.top && mouseY <= panelRect.bottom) {
             return; // 鼠标在面板内部，不触发更新
           }
+          
+          // 检查当前显示的任务是否就是当前任务（避免从面板移回同一任务时重复触发）
+          const currentTaskIdAttr = introPanel.getAttribute('data-current-task-id');
+          const currentTaskId = matchedEvent.id || extendedProps.taskId || '';
+          if (currentTaskIdAttr === currentTaskId) {
+            // 当前显示的就是这个任务，不触发更新（避免重复触发）
+            return;
+          }
         }
+        console.log("鼠标进入事件-并且鼠标不在面板内部，开始显示简介面板");
         
         // 构建任务详情数据（使用外部函数）
         const taskDetailData = buildTaskDetailData(matchedEvent, extendedProps);

@@ -66,6 +66,10 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
   panelPosition = { top: '100px', left: '100px' }; // 面板位置（初始值，避免在 0,0 位置）
   panelProcessing = false; // 处理任务中
   isPanelPositionReady = false; // 面板位置是否已计算完成（用于避免闪烁）
+  isPanelPositionLocked = false; // 面板位置是否已锁定（锁定后不能改变位置）
+  pendingTaskData: TaskDetailData | null = null; // 等待显示的任务数据（当旧面板位置锁定时）
+  pendingTaskPosition: { top: string; left: string } | null = null; // 等待显示的任务位置
+  pendingTaskEventId: string | null = null; // 等待显示的任务事件ID
   
   // 定时器管理器（符合函数式编程，通过参数传递）
   private timeoutManager: TimeoutManager = {
@@ -404,13 +408,18 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
   handleEventMouseEnter(arg: any): void {
     // 如果已经显示了处理面板，不显示简介面板
     if (this.showTaskDetailPanel) {
+      console.log("已经显示了处理面板，不显示简介面板");
       return;
     }
     
+    // 提取事件数据（使用外部函数）
+    const { event, extendedProps, eventId, eventElementId } = extractEventData(arg);
+    
+    // 构建任务详情数据（使用外部函数）
+    const taskDetailData = buildTaskDetailData(event, extendedProps);
+    
     // 如果简介面板已经显示，检查是否应该切换任务
     if (this.showTaskIntroPanel && this.currentTaskData) {
-      // 提取当前事件数据
-      const { event, extendedProps, eventId } = extractEventData(arg);
       const currentTaskId = this.currentTaskData.taskId;
       const newTaskId = extendedProps.taskId || event.id || '';
       
@@ -433,36 +442,24 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
           // 鼠标在面板内部，保持显示当前任务
           return;
         }
-        
-        // 鼠标不在面板内部，立即清除当前面板，让新任务开始计时
-        // 不清除 hideIntroTimeout，让旧任务的延迟隐藏正常执行（虽然面板已经被清除，但定时器会正常完成）
-        this.showTaskIntroPanel = false;
-        this.currentTaskData = null;
-        this.isPanelPositionReady = false;
-        this.cdr.markForCheck();
-        // 清除显示定时器，让新任务重新开始计时
-        clearShowTimeout(this.timeoutManager);
-      } else if (!arg.jsEvent) {
-        // 如果没有鼠标事件信息，但面板显示且是不同的任务
-        // 立即清除当前面板，让新任务开始计时
-        // 不清除 hideIntroTimeout，让旧任务的延迟隐藏正常执行
-        this.showTaskIntroPanel = false;
-        this.currentTaskData = null;
-        this.isPanelPositionReady = false;
-        this.cdr.markForCheck();
-        // 清除显示定时器，让新任务重新开始计时
-        clearShowTimeout(this.timeoutManager);
       }
+      
+      // 如果旧面板还在显示（不管是位置锁定还是未锁定），都应该保存新任务数据，等待旧面板隐藏后再开始倒计时
+      // 这样可以避免新面板闪烁或立即显示
+      // 清除新任务的显示定时器（如果有的话）
+      clearShowTimeout(this.timeoutManager);
+      // 保存新任务数据，等待旧面板隐藏后再显示
+      const targetElement = findTargetElement(eventId, arg.el as HTMLElement);
+      const calculatedPosition = computePanelPosition(targetElement, arg.jsEvent);
+      this.pendingTaskData = taskDetailData;
+      this.pendingTaskPosition = calculatedPosition;
+      this.pendingTaskEventId = eventId;
+      // 直接返回，不开始新任务的倒计时
+      return;
     }
     
     // 只清除显示定时器，不清除隐藏定时器（让旧任务的延迟隐藏正常执行）
     clearShowTimeout(this.timeoutManager);
-    
-    // 提取事件数据（使用外部函数）
-    const { event, extendedProps, eventId, eventElementId } = extractEventData(arg);
-    
-    // 构建任务详情数据（使用外部函数）
-    const taskDetailData = buildTaskDetailData(event, extendedProps);
     
     // 查找目标元素（使用外部函数）
     const targetElement = findTargetElement(eventId, arg.el as HTMLElement);
@@ -474,6 +471,28 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
       // 再次检查是否已经显示了处理面板
       if (this.showTaskDetailPanel) {
+        return;
+      }
+      
+      // 如果旧面板位置已锁定且旧面板还在显示，保存新任务数据，等待旧面板隐藏后再显示
+      if (this.isPanelPositionLocked && this.showTaskIntroPanel && 
+          this.currentTaskData && this.currentTaskData.taskId !== taskDetailData.taskId) {
+        // 旧面板还在显示，保存新任务数据，等待旧面板隐藏后再显示
+        // 不显示新面板，等待旧面板隐藏
+        return;
+      }
+      
+      // 如果旧面板已经隐藏（isPanelPositionLocked 为 false），或者当前没有面板显示，可以显示新面板
+      // 再次验证任务ID是否匹配（确保是同一个任务）
+      if (this.currentTaskData && this.currentTaskData.taskId !== taskDetailData.taskId && 
+          this.isPanelPositionLocked) {
+        // 如果任务ID不匹配且位置已锁定，说明旧面板还在显示，不显示新面板
+        return;
+      }
+      
+      // 重新查找目标元素（确保使用最新的元素位置）
+      const currentTargetElement = findTargetElement(eventId, undefined);
+      if (!currentTargetElement) {
         return;
       }
       
@@ -495,25 +514,47 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         requestAnimationFrame(() => {
           // 再等待一帧，确保面板完全渲染
           requestAnimationFrame(() => {
-            if (targetElement && this.showTaskIntroPanel) {
+            // 再次验证任务ID和面板状态
+            if (!this.showTaskIntroPanel || !this.currentTaskData || 
+                this.currentTaskData.taskId !== taskDetailData.taskId) {
+              // 如果任务已改变，标记位置已准备好（虽然不显示）
+              this.ngZone.run(() => {
+                this.isPanelPositionReady = true;
+                this.cdr.markForCheck();
+              });
+              return;
+            }
+            
+            // 再次查找目标元素（确保使用最新的DOM元素）
+            const finalTargetElement = findTargetElement(eventId, undefined);
+            if (finalTargetElement) {
               // 获取实际面板高度（使用外部函数）
               const actualHeight = getActualPanelHeight('.task-intro-panel', 300);
               
-              // 使用实际高度计算精确位置
-              const position = computePanelPosition(targetElement, null, true, actualHeight);
+              // 使用实际高度和最新元素计算精确位置
+              const position = computePanelPosition(finalTargetElement, null, true, actualHeight);
               
               // 如果有精确位置，使用精确位置；否则使用初始计算的预估位置
               const finalPosition = position || calculatedPosition;
               
               this.ngZone.run(() => {
-                // 一次性更新位置和显示状态，避免闪烁
-                this.panelPosition = finalPosition;
-                // 标记位置已准备好，面板可以显示
-                this.isPanelPositionReady = true;
-                this.cdr.markForCheck();
+                // 再次验证任务ID（确保位置计算时任务没有改变）
+                if (this.currentTaskData && this.currentTaskData.taskId === taskDetailData.taskId) {
+                  // 一次性更新位置和显示状态，避免闪烁
+                  this.panelPosition = finalPosition;
+                  // 标记位置已准备好，面板可以显示
+                  this.isPanelPositionReady = true;
+                  // 锁定面板位置，防止后续改变
+                  this.isPanelPositionLocked = true;
+                  this.cdr.markForCheck();
+                } else {
+                  // 任务已改变，标记位置已准备好（虽然不显示）
+                  this.isPanelPositionReady = true;
+                  this.cdr.markForCheck();
+                }
               });
             } else {
-              // 如果面板已关闭，标记位置已准备好（虽然不显示）
+              // 如果找不到元素，标记位置已准备好（虽然不显示）
               this.ngZone.run(() => {
                 this.isPanelPositionReady = true;
                 this.cdr.markForCheck();
@@ -545,7 +586,37 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         }
         this.showTaskIntroPanel = false;
         this.currentTaskData = null;
+        this.isPanelPositionLocked = false; // 解锁位置
         this.cdr.markForCheck();
+        
+        // 如果有等待显示的任务，延迟一小段时间后开始倒计时（而不是立即显示）
+        // 这样可以避免面板闪烁，让用户有时间看到面板的隐藏动画
+        if (this.pendingTaskData && this.pendingTaskPosition && this.pendingTaskEventId) {
+          const pendingData = this.pendingTaskData;
+          const pendingPosition = this.pendingTaskPosition;
+          const pendingEventId = this.pendingTaskEventId;
+          
+          // 清空等待数据
+          this.pendingTaskData = null;
+          this.pendingTaskPosition = null;
+          this.pendingTaskEventId = null;
+          
+          // 延迟一小段时间后开始新任务的倒计时（而不是立即显示）
+          // 这样可以避免面板闪烁，让用户有时间看到旧面板的隐藏动画
+          setTimeout(() => {
+            // 重新触发新任务的倒计时逻辑
+            const targetElement = findTargetElement(pendingEventId, undefined);
+            if (targetElement) {
+              // 开始新任务的倒计时
+              this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
+                if (!this.showTaskDetailPanel && 
+                    (!this.currentTaskData || this.currentTaskData.taskId === pendingData.taskId)) {
+                  this.showPendingTaskPanel(pendingData, pendingPosition, pendingEventId);
+                }
+              }, 700); // 延迟700毫秒
+            }
+          }, 100); // 延迟100毫秒，让旧面板有足够时间隐藏
+        }
       }, 300); // 延迟0.3秒，快速响应
     } else {
       // 如果面板还没显示，清除显示定时器即可
@@ -617,8 +688,18 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     // 定义回调函数
     const callbacks: EventHandlerCallbacks = {
       onMouseEnter: (taskData: TaskDetailData, event: MouseEvent) => {
-        this.currentTaskData = taskData;
-        this.updatePanelPosition(event);
+        // 如果简介面板已经显示，且是同一个任务，不更新（避免重复触发）
+        if (this.showTaskIntroPanel && this.currentTaskData && 
+            this.currentTaskData.taskId === taskData.taskId) {
+          return; // 同一个任务，不更新
+        }
+        // 如果简介面板已经显示，但面板位置已锁定，也不更新
+        if (this.showTaskIntroPanel && this.isPanelPositionLocked) {
+          return; // 面板位置已锁定，不更新
+        }
+        // 否则更新（这个回调主要用于备用方案，现在主要使用 FullCalendar 的 eventMouseEnter）
+        // this.currentTaskData = taskData;
+        // this.updatePanelPosition(event);
       },
       onMouseLeave: () => {
         // 已废弃，现在使用 FullCalendar 的 eventMouseLeave
@@ -647,10 +728,94 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
   
   //MARK:更新面板位置（使用鼠标事件，备用方案）
   updatePanelPosition(event: MouseEvent) {
+    console.log("更新面板位置");
     const position = calculatePanelPositionByMouseEvent(event);
+    console.log("更新面板位置-计算结果", position);
     if (position) {
       this.panelPosition = position;
+      console.log("更新面板位置-更新结果", this.panelPosition);
     }
+  }
+  
+  //MARK:显示等待的任务面板
+  private showPendingTaskPanel(
+    taskDetailData: TaskDetailData,
+    calculatedPosition: { top: string; left: string },
+    eventId: string
+  ): void {
+    // 重新查找目标元素（确保使用最新的元素位置）
+    const currentTargetElement = findTargetElement(eventId, undefined);
+    if (!currentTargetElement) {
+      return;
+    }
+    
+    // 更新任务数据
+    this.currentTaskData = taskDetailData;
+    
+    // 标记位置未准备好，面板将保持不可见
+    this.isPanelPositionReady = false;
+    
+    // 先显示面板但保持不可见（用于获取实际高度）
+    // 先设置一个屏幕外的位置，避免在错误位置闪烁
+    this.panelPosition = { top: '-9999px', left: '-9999px' };
+    this.showTaskIntroPanel = true;
+    this.cdr.markForCheck();
+    
+    // 使用 requestAnimationFrame 等待 DOM 渲染完成，然后计算精确位置
+    this.ngZone.runOutsideAngular(() => {
+      // 等待一帧，让面板渲染
+      requestAnimationFrame(() => {
+        // 再等待一帧，确保面板完全渲染
+        requestAnimationFrame(() => {
+          // 再次验证任务ID和面板状态
+          if (!this.showTaskIntroPanel || !this.currentTaskData || 
+              this.currentTaskData.taskId !== taskDetailData.taskId) {
+            // 如果任务已改变，标记位置已准备好（虽然不显示）
+            this.ngZone.run(() => {
+              this.isPanelPositionReady = true;
+              this.cdr.markForCheck();
+            });
+            return;
+          }
+          
+          // 再次查找目标元素（确保使用最新的DOM元素）
+          const finalTargetElement = findTargetElement(eventId, undefined);
+          if (finalTargetElement) {
+            // 获取实际面板高度（使用外部函数）
+            const actualHeight = getActualPanelHeight('.task-intro-panel', 300);
+            
+            // 使用实际高度和最新元素计算精确位置
+            const position = computePanelPosition(finalTargetElement, null, true, actualHeight);
+            
+            // 如果有精确位置，使用精确位置；否则使用初始计算的预估位置
+            const finalPosition = position || calculatedPosition;
+            
+            this.ngZone.run(() => {
+              // 再次验证任务ID（确保位置计算时任务没有改变）
+              if (this.currentTaskData && this.currentTaskData.taskId === taskDetailData.taskId) {
+                // 一次性更新位置和显示状态，避免闪烁
+                this.panelPosition = finalPosition;
+                // 标记位置已准备好，面板可以显示
+                this.isPanelPositionReady = true;
+                // 锁定面板位置，防止后续改变
+                this.isPanelPositionLocked = true;
+                this.cdr.markForCheck();
+              } else {
+                // 任务已改变，标记位置已准备好（虽然不显示）
+                this.isPanelPositionReady = true;
+                this.cdr.markForCheck();
+              }
+            });
+          } else {
+            // 如果找不到元素，标记位置已准备好（虽然不显示）
+            this.ngZone.run(() => {
+              this.isPanelPositionReady = true;
+              this.cdr.markForCheck();
+            });
+          }
+        });
+      });
+    });
   }
   
   //MARK:鼠标进入面板（简介面板）
@@ -664,12 +829,59 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     // 延迟隐藏简介面板（参考 tooltip 的实现，立即隐藏）
     this.timeoutManager.hideIntroTimeout = window.setTimeout(() => {
       if (!this.showTaskDetailPanel) {
+        // 在隐藏旧面板之前，先清除可能正在进行的显示定时器
+        // 这样可以避免新任务的倒计时与旧面板隐藏逻辑冲突
+        clearShowTimeout(this.timeoutManager);
+        
         this.showTaskIntroPanel = false;
         this.currentTaskData = null;
         this.isPanelPositionReady = false; // 重置位置状态
+        this.isPanelPositionLocked = false; // 解锁位置
         this.cdr.markForCheck();
+        
+        // 如果有等待显示的任务，延迟一小段时间后开始倒计时（而不是立即显示）
+        // 这样可以避免面板闪烁，让用户有时间看到面板的隐藏动画
+        if (this.pendingTaskData && this.pendingTaskPosition && this.pendingTaskEventId) {
+          const pendingData = this.pendingTaskData;
+          const pendingPosition = this.pendingTaskPosition;
+          const pendingEventId = this.pendingTaskEventId;
+          
+          // 清空等待数据
+          this.pendingTaskData = null;
+          this.pendingTaskPosition = null;
+          this.pendingTaskEventId = null;
+          
+          // 延迟一小段时间后开始新任务的倒计时（而不是立即显示）
+          // 这样可以避免面板闪烁，让用户有时间看到旧面板的隐藏动画
+          setTimeout(() => {
+            // 再次检查是否有新的等待任务（可能在延迟期间又被设置了）
+            // 如果又有新的等待任务，说明用户又移动到了其他任务，不显示当前这个
+            if (this.pendingTaskData && this.pendingTaskData.taskId !== pendingData.taskId) {
+              // 有更新的等待任务，不显示当前这个
+              return;
+            }
+            
+            // 重新触发新任务的倒计时逻辑
+            const targetElement = findTargetElement(pendingEventId, undefined);
+            if (targetElement) {
+              // 开始新任务的倒计时
+              this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
+                // 再次检查：如果又有了新的等待任务，或者面板已经显示，不显示当前这个
+                if (this.showTaskDetailPanel || this.showTaskIntroPanel) {
+                  return;
+                }
+                if (this.pendingTaskData && this.pendingTaskData.taskId !== pendingData.taskId) {
+                  return;
+                }
+                if (!this.currentTaskData || this.currentTaskData.taskId === pendingData.taskId) {
+                  this.showPendingTaskPanel(pendingData, pendingPosition, pendingEventId);
+                }
+              }, 700); // 延迟700毫秒
+            }
+          }, 100); // 延迟100毫秒，让旧面板有足够时间隐藏
+        }
       }
-    }, 500); // 延迟0.3秒，与任务元素移出保持一致
+    }, 500); // 延迟0.5秒，与任务元素移出保持一致
   }
   
   //MARK:处理任务
