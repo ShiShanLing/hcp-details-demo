@@ -590,8 +590,7 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         this.isPanelPositionLocked = false; // 解锁位置
         this.cdr.markForCheck();
         
-        // 如果有等待显示的任务，延迟一小段时间后开始倒计时（而不是立即显示）
-        // 这样可以避免面板闪烁，让用户有时间看到面板的隐藏动画
+        // 如果有等待显示的任务，优化：如果刚才有任务简介面板展示并隐藏了，只需要400ms就展示下一个任务面板
         if (this.pendingTaskData && this.pendingTaskPosition && this.pendingTaskEventId) {
           const pendingData = this.pendingTaskData;
           const pendingPosition = this.pendingTaskPosition;
@@ -602,21 +601,17 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
           this.pendingTaskPosition = null;
           this.pendingTaskEventId = null;
           
-          // 延迟一小段时间后开始新任务的倒计时（而不是立即显示）
-          // 这样可以避免面板闪烁，让用户有时间看到旧面板的隐藏动画
-          setTimeout(() => {
-            // 重新触发新任务的倒计时逻辑
-            const targetElement = findTargetElement(pendingEventId, undefined);
-            if (targetElement) {
-              // 开始新任务的倒计时
-              this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
-                if (!this.showTaskDetailPanel && 
-                    (!this.currentTaskData || this.currentTaskData.taskId === pendingData.taskId)) {
-                  this.showPendingTaskPanel(pendingData, pendingPosition, pendingEventId);
-                }
-              }, 700); // 延迟700毫秒
-            }
-          }, 100); // 延迟100毫秒，让旧面板有足够时间隐藏
+          // 优化：旧面板刚隐藏，直接开始短倒计时（400ms），不需要额外缓冲
+          const targetElement = findTargetElement(pendingEventId, undefined);
+          if (targetElement) {
+            // 开始新任务的倒计时（缩短为400ms，因为旧面板已经隐藏）
+            this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
+              if (!this.showTaskDetailPanel && 
+                  (!this.currentTaskData || this.currentTaskData.taskId === pendingData.taskId)) {
+                this.showPendingTaskPanel(pendingData, pendingPosition, pendingEventId);
+              }
+            }, 400); // 优化：缩短为400ms，因为旧面板已经隐藏
+          }
         }
       }, 300); // 延迟0.3秒，快速响应
     } else {
@@ -824,7 +819,6 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     // 清除隐藏定时器（使用外部函数）
     clearHideTimeout(this.timeoutManager);
   }
-  
   //MARK:鼠标离开面板（简介面板）
   handleIntroPanelMouseLeave() {
     // 延迟隐藏简介面板（参考 tooltip 的实现，立即隐藏）
@@ -840,8 +834,7 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         this.isPanelPositionLocked = false; // 解锁位置
         this.cdr.markForCheck();
         
-        // 如果有等待显示的任务，延迟一小段时间后开始倒计时（而不是立即显示）
-        // 这样可以避免面板闪烁，让用户有时间看到面板的隐藏动画
+        // 如果有等待显示的任务，优化：如果刚才有任务简介面板展示并隐藏了，只需要400ms就展示下一个任务面板
         if (this.pendingTaskData && this.pendingTaskPosition && this.pendingTaskEventId) {
           const pendingData = this.pendingTaskData;
           const pendingPosition = this.pendingTaskPosition;
@@ -852,40 +845,29 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
           this.pendingTaskPosition = null;
           this.pendingTaskEventId = null;
           
-          // 延迟一小段时间后开始新任务的倒计时（而不是立即显示）
-          // 这样可以避免面板闪烁，让用户有时间看到旧面板的隐藏动画
-          setTimeout(() => {
-            // 再次检查是否有新的等待任务（可能在延迟期间又被设置了）
-            // 如果又有新的等待任务，说明用户又移动到了其他任务，不显示当前这个
-            if (this.pendingTaskData && this.pendingTaskData.taskId !== pendingData.taskId) {
-              // 有更新的等待任务，不显示当前这个
-              return;
-            }
-            
-            // 重新触发新任务的倒计时逻辑
-            const targetElement = findTargetElement(pendingEventId, undefined);
-            if (targetElement) {
-              // 开始新任务的倒计时
-              this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
-                // 再次检查：如果又有了新的等待任务，或者面板已经显示，不显示当前这个
-                if (this.showTaskDetailPanel || this.showTaskIntroPanel) {
-                  return;
-                }
-                if (this.pendingTaskData && this.pendingTaskData.taskId !== pendingData.taskId) {
-                  return;
-                }
-                if (!this.currentTaskData || this.currentTaskData.taskId === pendingData.taskId) {
-                  this.showPendingTaskPanel(pendingData, pendingPosition, pendingEventId);
-                }
-              }, 700); // 延迟700毫秒
-            }
-          }, 100); // 延迟100毫秒，让旧面板有足够时间隐藏
+          // 优化：旧面板刚隐藏，直接开始短倒计时（400ms），不需要额外缓冲
+          const targetElement = findTargetElement(pendingEventId, undefined);
+          if (targetElement) {
+            // 开始新任务的倒计时（缩短为400ms，因为旧面板已经隐藏）
+            this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
+              // 再次检查：如果又有了新的等待任务，或者面板已经显示，不显示当前这个
+              if (this.showTaskDetailPanel || this.showTaskIntroPanel) {
+                return;
+              }
+              if (this.pendingTaskData && this.pendingTaskData.taskId !== pendingData.taskId) {
+                return;
+              }
+              if (!this.currentTaskData || this.currentTaskData.taskId === pendingData.taskId) {
+                this.showPendingTaskPanel(pendingData, pendingPosition, pendingEventId);
+              }
+            }, 400); // 优化：缩短为400ms，因为旧面板已经隐藏
+          }
         }
       }
     }, 500); // 延迟0.5秒，与任务元素移出保持一致
   }
   
-  //MARK:处理任务
+  //MARK:处理任务确认弹框
   handleCompleteTask() {
     if (!this.currentTaskData) return;
     
@@ -966,17 +948,14 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       }, 500);
     });
   }
-  
-  //MARK:更新日历事件
+  //MARK:任务处理后更新日历事件
   private updateCalendarEvent(updatedData: TaskDetailData) {
     if (!updatedData.taskId) return;
-    
     // 查找并更新 calendarEvents
     const index = this.calendarEvents.findIndex((e: any) => {
       const eTaskId = e.id || (e.extendedProps as any)?.taskId;
       return eTaskId === updatedData.taskId;
     });
-    
     if (index !== -1) {
       const originalEvent = this.calendarEvents[index] as any;
       if (originalEvent.extendedProps) {
@@ -1007,108 +986,8 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // 清理面板定时器
-  ngOnDestroy() {
-    // 清理定时器（使用外部函数）
-    clearAllTimeouts(this.timeoutManager);
-    
-    // 移除事件监听
-    window.removeEventListener('resize', this.updateCalendarSize);
-    
-    // 断开 ResizeObserver
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-    }
-    
-    // 清理鼠标事件处理器（使用外部函数）
-    cleanupEventMouseHandlers();
-    
-    // 清理定时器（已在前面清理，这里不需要重复）
-    
-    // 移除文档点击监听
-    document.removeEventListener('click', this.handleDocumentClick);
-  }
-  
-  // 更新任务完成后的状态（已废弃，保留以防其他地方调用）
-  private updateEventAfterComplete(event: any, updatedData: TaskDetailData & { _eventBrand?: string; _eventStart?: string }): void {
-    const extendedProps = event.extendedProps as any;
-    
-    // 通过 taskId 或 event.id 来查找对应的事件（优先使用ID）
-    const taskId = updatedData.taskId || extendedProps.taskId || event.id;
-    
-    if (taskId) {
-      const index = this.calendarEvents.findIndex((e: any) => {
-        const eTaskId = e.id || (e.extendedProps as any)?.taskId;
-        return eTaskId === taskId;
-      });
-      
-      if (index !== -1) {
-        // 更新 calendarEvents 数组中的原始数据（这是可写的）
-        const originalEvent = this.calendarEvents[index] as any;
-        if (originalEvent.extendedProps) {
-          // 创建新的 extendedProps 对象，避免只读属性错误
-          originalEvent.extendedProps = {
-            ...originalEvent.extendedProps,
-            isCompleted: true,
-            processedTime: updatedData.processedTime,
-            processedBy: updatedData.processedBy
-          };
-          originalEvent.color = this.getTaskColor(originalEvent.extendedProps.taskType, true);
-          
-          console.log('任务已更新:', originalEvent);
-        }
-      } else {
-        console.warn('未找到对应的任务，taskId:', taskId);
-      }
-    } else {
-      // 如果没有ID，使用品牌和日期匹配（备用方案）
-      const eventBrand = updatedData._eventBrand || extendedProps.brand;
-      const eventStart = updatedData._eventStart || (event.start ? new Date(event.start).toISOString().split('T')[0] : undefined);
-      
-      if (eventBrand && eventStart) {
-        const index = this.calendarEvents.findIndex((e: any) => {
-          const eBrand = (e.extendedProps as any)?.brand;
-          const eStart = e.start ? new Date(e.start).toISOString().split('T')[0] : undefined;
-          return eBrand === eventBrand && eStart === eventStart;
-        });
-        
-        if (index !== -1) {
-          const originalEvent = this.calendarEvents[index] as any;
-          if (originalEvent.extendedProps) {
-            // 创建新的 extendedProps 对象，避免只读属性错误
-            originalEvent.extendedProps = {
-              ...originalEvent.extendedProps,
-              isCompleted: true,
-              processedTime: updatedData.processedTime,
-              processedBy: updatedData.processedBy
-            };
-            originalEvent.color = this.getTaskColor(originalEvent.extendedProps.taskType, true);
-            
-            console.log('任务已更新（通过品牌和日期匹配）:', originalEvent);
-          }
-        }
-      }
-    }
 
-    // 使用 FullCalendar API 更新事件（不要直接修改 extendedProps，因为它是只读的）
-    const api = this.calendarComponent?.getApi();
-    if (api && taskId) {
-      // 通过 setProp 方法更新事件属性
-      event.setProp('color', this.getTaskColor(extendedProps.taskType, true));
-      
-      // 使用 setExtendedProp 更新 extendedProps（这是 FullCalendar 推荐的方式）
-      event.setExtendedProp('isCompleted', true);
-      event.setExtendedProp('processedTime', updatedData.processedTime);
-      event.setExtendedProp('processedBy', updatedData.processedBy);
-    }
-
-    // 重新渲染事件
-    if (api) {
-      api.render();
-    }
-  }
-
-  // 跳转到指定年月
+  //MARK:跳转年月
   gotoDate(): void {
     // 创建日期对象（设置为该月第一天）
     const date = new Date(this.selectedYear, this.selectedMonth - 1, 1);
@@ -1122,7 +1001,7 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // 跳转到今天
+  //MARK:跳转今天
   goToToday(): void {
     const today = new Date();
     this.selectedYear = today.getFullYear();
@@ -1133,5 +1012,22 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       this.updateCalendarSize();
     }
   }
+
+  // 清理面板定时器
+  ngOnDestroy() {
+    // 清理定时器（使用外部函数）
+    clearAllTimeouts(this.timeoutManager);
+    // 移除事件监听
+    window.removeEventListener('resize', this.updateCalendarSize);
+    // 断开 ResizeObserver
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    // 清理鼠标事件处理器（使用外部函数）
+    cleanupEventMouseHandlers();
+    // 移除文档点击监听
+    document.removeEventListener('click', this.handleDocumentClick);
+  }
+
 }
 
