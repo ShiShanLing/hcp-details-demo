@@ -97,9 +97,7 @@ export function getTaskColor(taskType: string, isCompleted: boolean = false): st
       return '#ff6b35'; // 默认颜色
   }
 }
-
 // ==================== 任务数据处理 ====================
-
 /**
  * 获取默认的任务事件列表（用于初始化检查）
  */
@@ -110,7 +108,7 @@ export function getDefaultCalendarEvents(): any[] {
   const fourDaysLater = new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0];
   const sevenDaysLater = new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-  
+
   return [
     {
       id: 'task-001',

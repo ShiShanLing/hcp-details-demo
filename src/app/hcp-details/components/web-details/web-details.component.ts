@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import * as echarts from 'echarts';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import { getChartOption, getAiAnalysesResult, analysisResult } from './mock-data';
+import { getChartOption, getAiAnalysesResult, analysisResult, scoreDescription } from './mock-data';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { BrowserWindowSizeChangeEnum, NotificationService } from '@app/services/notification.service';
 import { LoadingService } from '@app/shared/services/loading.service';
@@ -37,7 +37,7 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   private calendarModalRef: NzModalRef | null = null; // 保存日历模态框的引用
   imgPath = environment.imgPath;
   hasTodayTask = false; // 今天是否有任务
-  
+
   // 检测是否为 iPad
   isIPad = false;
   scrollbarMaxHeight = '95px';
@@ -49,12 +49,26 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   marqueeText = '📋 今天电话拜访张医生，探讨关于欧乐欣的缺货问题。';
 
   // 图例数据状态
+  /*
+      '学术影响力',
+        '治疗理念',
+        '产品经验',
+        '患者管理',
+        '区域带教',
+  */
   legendData = [
-    { name: 'p1', score: '54.6', trend: 'up', visible: true, color: 'rgb(41, 80, 141)' },
-    { name: 'p2', score: '54.6', trend: 'down', visible: true, color: 'rgb(230, 111, 145)' },
-    { name: 'p3', score: '54.6', trend: 'up', visible: true, color: 'rgb(75, 125, 201)' },
-    { name: 'p4', score: '54.6', trend: 'down', visible: true, color: 'rgb(85, 184, 132)' }
+    { name: '学术影响力', score: '3', trend: 'up', visible: true, color: 'rgb(41, 80, 141)' },
+    { name: '治疗理念', score: '4', trend: 'down', visible: true, color: 'rgb(230, 111, 145)' },
+    { name: '产品经验', score: '3', trend: 'up', visible: true, color: 'rgb(75, 125, 201)' },
+    { name: '患者管理', score: '4', trend: 'down', visible: true, color: 'rgb(85, 184, 132)' },
+    { name: '区域带教', score: '3', trend: 'down', visible: true, color: 'rgb(85, 184, 132)' }
   ];
+  //平均分 - 只计算可见的项目
+  get averageScore() {
+    const visibleItems = this.legendData.filter(item => item.visible);
+    if (visibleItems.length === 0) return 0;
+    return visibleItems.reduce((sum, item) => sum + Number(item.score), 0) / visibleItems.length;
+  }
 
   // 扣分项配置 - key对应的扣分项名称
   private p_new: { [key: string]: { desc: string; order: number; step: number } } = {
@@ -236,26 +250,52 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // 图例点击事件
-  toggleLegend(index: number) {
-    this.legendData[index].visible = !this.legendData[index].visible;
-    this.updateChart();
+  // 获取分数说明
+  getScoreDescription(name: string, score: string): string {
+    const descriptions = scoreDescription[name as keyof typeof scoreDescription];
+    if (descriptions && descriptions[score as keyof typeof descriptions]) {
+      return descriptions[score as keyof typeof descriptions];
+    }
+    return '暂无说明';
   }
 
   // 更新图表
   updateChart() {
     if (this.chart) {
-      const option = this.chart.getOption();
-      const series = option['series'] as any[];
+      // 获取原始图表配置
+      const originalOption = getChartOption(false);
       
-      // 更新每个系列的显示状态
+      // 根据 legendData 的 visible 状态过滤 indicator 和数据
+      const visibleIndicators: any[] = [];
+      const visibleData: any[] = [];
+      
+      // 获取原始数据
+      const originalIndicators = originalOption.radar.indicator || [];
+      const originalSeriesData = originalOption.series?.[0]?.data?.[0] || [];
+      
+      // 根据 visible 状态构建新的 indicator 和 data
       this.legendData.forEach((item, index) => {
-        if (series[index]) {
-          series[index].data = item.visible ? [getChartOption().series[index].data[0]] : [];
+        if (item.visible && originalIndicators[index]) {
+          visibleIndicators.push(originalIndicators[index]);
+          // 原始数据是反转后的 (10 - score)，所以需要保持一致性
+          visibleData.push(originalSeriesData[index]);
         }
       });
       
-      this.chart.setOption(option);
+      // 更新图表配置
+      const updatedOption: any = {
+        ...originalOption,
+        radar: {
+          ...originalOption.radar,
+          indicator: visibleIndicators
+        },
+        series: [{
+          ...originalOption.series[0],
+          data: [visibleData]
+        }]
+      };
+      
+      this.chart.setOption(updatedOption, true);
     }
   }
 
@@ -268,7 +308,11 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
       }
       
       this.chart = echarts.init(chartElement);
+      // 初始化时先设置完整配置，然后根据 legendData 状态更新
       this.chart.setOption(getChartOption(false));  // 传递 isMobile: false
+      
+      // 根据 legendData 的初始状态更新图表
+      this.updateChart();
       
       // 添加图表渲染完成后的回调
       this.chart.on('finished', () => {

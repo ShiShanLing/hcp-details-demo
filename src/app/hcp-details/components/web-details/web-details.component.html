@@ -61,19 +61,23 @@
                 <div class="custom-legend">
                     <div [class]="['average-value-box']">
                         <span class="title">平均分</span>
-                        <span class="value">54.6</span>
-                        <i class="iconfont icon-up1" [style]="{'margin-top': '7px'}"></i>
+                        <span class="value">{{averageScore.toFixed(1)}}</span>
+                        <!-- <i class="iconfont icon-up1" [style]="{'margin-top': '7px'}"></i> -->
                     </div>
-
+                
                     @for (item of legendData; track item.name; let i = $index) {
-                    <div class="legend-item" [class.disabled]="!item.visible" (click)="toggleLegend(i)">
-                        <div class="legend-color" [style.background-color]="item.color"></div>
+                    <div class="legend-item" 
+                         [class.disabled]="!item.visible"
+                         [nz-tooltip]="getScoreDescription(item.name, item.score)"
+                         nzTooltipTrigger="hover"
+                         [nzTooltipMouseEnterDelay]="0.5"
+                         nzTooltipPlacement="top"
+                         nzTooltipOverlayClassName="legend-tooltip">
                         <div class="legend-text">
                             <span class="legend-name">{{item.name}}</span>
                             <span class="legend-score">{{item.score}}<span [style]="{'font-size': '11px'}">分</span>
                             </span>
-                            <i class="iconfont icon-up1"
-                                [class]="item.trend === 'up' ? 'icon-up1' : 'icon-xiajiang'"></i>
+                            <!-- <i class="iconfont icon-gantanhaozhong" [style]="{'font-size': '22px', 'line-height': '29px'}"></i> -->
                         </div>
                     </div>
                     }
