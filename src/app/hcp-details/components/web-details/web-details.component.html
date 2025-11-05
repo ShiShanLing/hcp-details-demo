@@ -73,7 +73,7 @@
                          [nzTooltipMouseEnterDelay]="0.5"
                          nzTooltipPlacement="top"
                          nzTooltipOverlayClassName="legend-tooltip">
-                        <div class="legend-text">
+                        <div class="legend-text" [nz-tooltip]="getScoreDescription(item.name, item.score)" nzTooltipTrigger="click"  nzTooltipPlacement="top" nzTooltipOverlayClassName="legend-tooltip">
                             <span class="legend-name">{{item.name}}</span>
                             <span class="legend-score">{{item.score}}<span [style]="{'font-size': '11px'}">分</span>
                             </span>

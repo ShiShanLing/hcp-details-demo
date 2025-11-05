@@ -386,7 +386,7 @@ height: 100%;
   }
 
   .chart-container {
-    margin-bottom: -20px;
+    margin-bottom: -15px;
     position: relative;
     height: 250px;
     width: 100%;
@@ -589,7 +589,7 @@ height: 100%;
   .project-cards {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     margin-top: 12px;
     padding: 0 12px;
 
@@ -642,17 +642,18 @@ height: 100%;
       text-align: center;
 
       &.clickable {
-        color: #1890ff;
+        color: red;
         cursor: pointer;
         transition: all 0.3s ease;
 
         &:hover {
-          color: #40a9ff;
+          font-size: 15px;
+          color: red;
           text-decoration: underline;
         }
 
         &:active {
-          color: #096dd9;
+          color: red;
         }
       }
     }
