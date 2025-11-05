@@ -1,0 +1,81 @@
+# GitLab CI/CD 配置 - 用于 GitLab Pages 部署
+
+# 定义构建阶段
+stages:
+  - build
+  - deploy
+
+# 变量定义
+variables:
+  NODE_VERSION: "20"
+  YARN_VERSION: "1.22.19"
+  # 根据您的 GitLab 项目路径调整这个值
+  # 例如：如果项目路径是 group/project-name，则设置为 /project-name/
+  # 如果项目在根组下，路径是 project-name，则设置为 /project-name/
+  BASE_HREF: "/hcp-details-demo/"
+
+# 缓存配置
+cache:
+  key:
+    files:
+      - package.json
+      - yarn.lock
+  paths:
+    - node_modules/
+    - .yarn/cache
+
+# 构建作业
+build:
+  stage: build
+  image: node:${NODE_VERSION}
+  
+  before_script:
+    # 安装 Yarn
+    - npm install -g yarn@${YARN_VERSION}
+    # 安装依赖
+    - yarn install --frozen-lockfile
+
+  script:
+    # 构建项目（使用 gitlab 配置）
+    - yarn build:gitlab
+
+  artifacts:
+    paths:
+      - dist-gzip/
+    expire_in: 1 hour
+    only:
+      - main
+      - master
+      - dev
+
+  rules:
+    # 只在推送到指定分支时运行
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
+      when: on_success
+
+# 部署到 GitLab Pages
+pages:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build
+  script:
+    # 创建 public 目录（GitLab Pages 要求）
+    - mkdir -p public
+    # 复制构建文件到 public 目录
+    - cp -r dist-gzip/* public/
+  
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+    only:
+      - main
+      - master
+      - dev
+  
+  rules:
+    # 只在推送到指定分支时运行
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
+      when: on_success
+

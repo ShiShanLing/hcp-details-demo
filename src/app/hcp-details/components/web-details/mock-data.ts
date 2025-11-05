@@ -145,7 +145,7 @@ export function getChartOption(isMobile: boolean = false) {
     },
     radar: {
       center: ['35%', '50%'],
-      radius: isMobile ? '45%' : '60%',
+      radius: isMobile ? '45%' : '55%',
       startAngle: 90,
       splitNumber: 4,
       alignTicks: false, // 禁用刻度对齐，避免警告

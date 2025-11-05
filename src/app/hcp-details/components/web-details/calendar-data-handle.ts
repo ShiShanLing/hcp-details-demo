@@ -24,6 +24,136 @@ export enum TaskColor {
   Completed = '#bfbfbf',        // 灰色 - 已完成任务
 }
 
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import { CalendarOptions, EventInput } from '@fullcalendar/core';
+import zhCnLocale from '@fullcalendar/core/locales/zh-cn';
+import { ChangeDetectorRef, NgZone } from '@angular/core';
+
+export const calendarEvents: EventInput[] = [
+  {
+    id: 'task-001', // 添加唯一ID
+    title: '欧乐欣', // 标题用于显示，但会被 eventContent 覆盖
+    extendedProps: {
+      taskId: 'task-001', // 也在 extendedProps 中保存ID
+      brand: '欧乐欣',
+      icon: TaskIcon.CallDoctor,
+      taskType: TaskType.CallDoctor,
+      taskDescription: '缺货',
+      isCompleted: false, // 未完成
+      displayOrder: 0 // 跑马灯任务，优先级最高，确保显示在最上面
+    },
+    start: new Date().toISOString().split('T')[0],
+    color: getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
+  },
+  {
+    id: 'task-1011', // 添加唯一ID
+    title: '欧乐欣', // 标题用于显示，但会被 eventContent 覆盖
+    extendedProps: {
+      taskId: 'task-1011', // 也在 extendedProps 中保存ID
+      brand: '欧乐欣',
+      icon: TaskIcon.CallDoctor,
+      taskType: TaskType.CallDoctor,
+      taskDescription: '这是拜访备注-可能是没有拜访成功',
+      isCompleted: false // 未完成
+    },
+    start: new Date(Date.now() + 86400000).toISOString().split('T')[0], // 昨天的日期
+    color: getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
+  },
+  {
+    id: 'task-2011', // 添加唯一ID
+    title: '欧乐欣', // 标题用于显示，但会被 eventContent 覆盖
+    extendedProps: {
+      taskId: 'task-2011', // 也在 extendedProps 中保存ID
+      brand: '欧乐欣',
+      icon: TaskIcon.CallDoctor,
+      taskType: TaskType.CallDoctor,
+      taskDescription: '这是拜访备注-可能是没有拜访成功',
+      isCompleted: false // 未完成
+    },
+    start: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // 昨天的日期
+    color: getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
+  },
+  {
+    id: 'task-3011', // 添加唯一ID
+    title: '欧乐欣', // 标题用于显示，但会被 eventContent 覆盖
+    extendedProps: {
+      taskId: 'task-3011', // 也在 extendedProps 中保存ID
+      brand: '欧乐欣',
+      icon: TaskIcon.CallDoctor,
+      taskType: TaskType.CallDoctor,
+      taskDescription: '这是拜访备注-可能是没有拜访成功',
+      isCompleted: false // 未完成
+    },
+    start: new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0], // 昨天的日期
+    color: getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
+  },
+  {
+    id: 'task-002',
+    title: '全再乐',
+    extendedProps: {
+      taskId: 'task-002',
+      brand: '全再乐',
+      icon: TaskIcon.WriteArticle,
+      taskType: TaskType.WriteArticle,
+      taskDescription: '这是文章备注-可能是没有文章成功',
+      isCompleted: false, // 未完成
+      displayOrder: 1 // 显示顺序
+    },
+    start: new Date().toISOString().split('T')[0],
+    color: getTaskColor(TaskType.WriteArticle, false) // 使用配置的颜色
+  },
+  {
+    id: 'task-003',
+    title: '舒利迭',
+    extendedProps: {
+      taskId: 'task-003',
+      brand: '舒利迭',
+      icon: TaskIcon.SendWechat,
+      taskType: TaskType.SendWechat,
+      taskDescription: '这是微信备注-可能是没有微信成功',
+      isCompleted: false // 未完成
+    },
+    start: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0], // 7天后的日期
+    color: getTaskColor(TaskType.SendWechat, false) // 使用配置的颜色
+  },
+  {
+    id: 'task-004',
+    title: '测试朋友圈',
+    extendedProps: {
+      taskId: 'task-004',
+      brand: '测试品牌',
+      icon: TaskIcon.SendCircle,
+      taskType: TaskType.SendCircle,
+      taskDescription: '这是朋友圈备注-测试朋友圈功能',
+      isCompleted: false, // 未完成
+      displayOrder: 2 // 显示顺序
+    },
+    start: new Date().toISOString().split('T')[0],
+    color: getTaskColor(TaskType.SendCircle, false) // 使用配置的颜色
+  },
+  // 已完成任务的示例
+  {
+    id: 'task-005',
+    title: '已完成任务-欧乐欣',
+    extendedProps: {
+      taskId: 'task-005',
+      brand: '欧乐欣',
+      icon: TaskIcon.CallDoctor,
+      taskType: TaskType.CallDoctor,
+      taskDescription: '这是已完成的拜访任务',
+      isCompleted: true, // 已完成
+      processedTime: new Date().toLocaleString('zh-CN'),
+      processedBy: '李四'
+    },
+    start: new Date(Date.now() - 86400000).toISOString().split('T')[0], // 昨天的日期
+    color: getTaskColor(TaskType.CallDoctor, true) // 灰色（已完成）
+  },
+];
+
+
+
+
 // ==================== 工具函数 ====================
 
 /**
@@ -50,10 +180,10 @@ export function decodeHtml(html: string): string {
 export function formatDateOnly(date: Date | string | null | undefined): string {
   if (!date) return '未知';
   try {
-    return new Date(date).toLocaleDateString('zh-CN', { 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit' 
+    return new Date(date).toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
     });
   } catch {
     return '未知';
@@ -82,7 +212,7 @@ export function getTaskColor(taskType: string, isCompleted: boolean = false): st
   if (isCompleted) {
     return TaskColor.Completed;
   }
-  
+
   // 未完成的任务根据类型返回对应颜色
   switch (taskType) {
     case TaskType.CallDoctor:
@@ -289,16 +419,16 @@ export function calculatePanelPositionByElementWithHeight(
   config: PanelPositionConfig = {}
 ): { top: string; left: string } | null {
   if (!element) return null;
-  
+
   // 处理向后兼容：如果设置了 offset，应用到 offsetX 和 offsetY
   const offsetX = config.offsetX !== undefined ? config.offsetX : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetX);
   const offsetY = config.offsetY !== undefined ? config.offsetY : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetY);
   const { panelWidth } = { ...DEFAULT_PANEL_CONFIG, ...config };
-  
+
   const elementRect = element.getBoundingClientRect();
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
-  
+
   // 水平方向计算（使用 offsetX）
   let left: number;
   const spaceOnRight = viewportWidth - elementRect.right;
@@ -306,7 +436,7 @@ export function calculatePanelPositionByElementWithHeight(
   const elementCenterX = elementRect.left + elementRect.width / 2;
   const viewportCenterX = viewportWidth / 2;
   const isElementOnLeft = elementCenterX < viewportCenterX;
-  
+
   if (isElementOnLeft) {
     if (spaceOnRight >= panelWidth + offsetX) {
       left = elementRect.right + offsetX;
@@ -324,12 +454,12 @@ export function calculatePanelPositionByElementWithHeight(
       left = spaceOnLeft > spaceOnRight ? 10 : viewportWidth - panelWidth - 10;
     }
   }
-  
+
   // 垂直方向计算（使用实际高度和 offsetY）
   let top: number;
   const spaceBelow = viewportHeight - elementRect.bottom;
   const spaceAbove = elementRect.top;
-  
+
   if (spaceBelow >= actualPanelHeight + offsetY) {
     top = elementRect.bottom + offsetY;
   } else if (spaceAbove >= actualPanelHeight + offsetY) {
@@ -344,13 +474,13 @@ export function calculatePanelPositionByElementWithHeight(
       top = preferredTop >= 10 ? preferredTop : Math.max(10, elementRect.top - actualPanelHeight);
     }
   }
-  
+
   // 边界检查
   if (left < 0) left = 10;
   if (left + panelWidth > viewportWidth) left = viewportWidth - panelWidth - 10;
   if (top < 0) top = 10;
   if (top + actualPanelHeight > viewportHeight) top = viewportHeight - actualPanelHeight - 10;
-  
+
   return {
     left: `${left}px`,
     top: `${top}px`
@@ -365,26 +495,26 @@ export function calculatePanelPositionByElement(
   config: PanelPositionConfig = {}
 ): { top: string; left: string } | null {
   if (!element) return null;
-  
+
   // 处理向后兼容：如果设置了 offset，应用到 offsetX 和 offsetY
   const offsetX = config.offsetX !== undefined ? config.offsetX : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetX);
   const offsetY = config.offsetY !== undefined ? config.offsetY : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetY);
   const { panelWidth, panelHeight } = { ...DEFAULT_PANEL_CONFIG, ...config };
-  
+
   const elementRect = element.getBoundingClientRect();
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
-  
+
   let left: number;
   let top: number;
-  
+
   // 水平方向计算（使用 offsetX）
   const spaceOnRight = viewportWidth - elementRect.right;
   const spaceOnLeft = elementRect.left;
   const elementCenterX = elementRect.left + elementRect.width / 2;
   const viewportCenterX = viewportWidth / 2;
   const isElementOnLeft = elementCenterX < viewportCenterX;
-  
+
   if (isElementOnLeft) {
     if (spaceOnRight >= panelWidth + offsetX) {
       left = elementRect.right + offsetX;
@@ -402,11 +532,11 @@ export function calculatePanelPositionByElement(
       left = spaceOnLeft > spaceOnRight ? 10 : viewportWidth - panelWidth - 10;
     }
   }
-  
+
   // 垂直方向计算（使用 offsetY）
   const spaceBelow = viewportHeight - elementRect.bottom;
   const spaceAbove = elementRect.top;
-  
+
   if (spaceBelow >= panelHeight + offsetY) {
     top = elementRect.bottom + offsetY;
   } else if (spaceAbove >= panelHeight + offsetY) {
@@ -434,13 +564,13 @@ export function calculatePanelPositionByElement(
       }
     }
   }
-  
+
   // 边界检查
   if (left < 0) left = 10;
   if (left + panelWidth > viewportWidth) left = viewportWidth - panelWidth - 10;
   if (top < 0) top = 10;
   if (top + panelHeight > viewportHeight) top = viewportHeight - panelHeight - 10;
-  
+
   return {
     left: `${left}px`,
     top: `${top}px`
@@ -458,27 +588,27 @@ export function calculatePanelPositionByRect(
   const offsetX = config.offsetX !== undefined ? config.offsetX : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetX);
   const offsetY = config.offsetY !== undefined ? config.offsetY : (config.offset !== undefined ? config.offset : DEFAULT_PANEL_CONFIG.offsetY);
   const { panelWidth, panelHeight } = { ...DEFAULT_PANEL_CONFIG, ...config };
-  
+
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
-  
+
   let left = rect.right + offsetX;
   let top = rect.top + offsetY;
-  
+
   // 如果右边空间不够，显示在左边
   if (left + panelWidth > viewportWidth) {
     left = rect.left - panelWidth - offsetX;
   }
-  
+
   // 如果下边空间不够，显示在上边
   if (top + panelHeight > viewportHeight) {
     top = rect.bottom - panelHeight - offsetY;
   }
-  
+
   // 确保不超出边界
   if (left < 0) left = offsetX;
   if (top < 0) top = offsetY;
-  
+
   return {
     left: `${left}px`,
     top: `${top}px`
@@ -493,7 +623,7 @@ export function calculatePanelPositionByMouseEvent(
   config: PanelPositionConfig = {}
 ): { top: string; left: string } | null {
   if (!event) return null;
-  
+
   const rect = {
     left: event.pageX,
     top: event.pageY,
@@ -502,7 +632,7 @@ export function calculatePanelPositionByMouseEvent(
     width: 0,
     height: 0
   } as DOMRect;
-  
+
   return calculatePanelPositionByRect(rect, config);
 }
 
@@ -518,12 +648,12 @@ export function findTargetElement(
   if (!eventId) {
     return fallbackElement || null;
   }
-  
+
   const eventElementId = `task-event-${eventId}`;
-  
+
   // 尝试通过ID获取元素
   let targetElement = document.getElementById(eventElementId) || fallbackElement || null;
-  
+
   // 如果找不到，尝试通过查找包含data-event-id的元素
   if (!targetElement || !targetElement.getBoundingClientRect) {
     const customEventElement = document.querySelector(`[data-event-id="${eventId}"]`);
@@ -531,7 +661,7 @@ export function findTargetElement(
       targetElement = customEventElement.closest('.fc-event') as HTMLElement || customEventElement as HTMLElement;
     }
   }
-  
+
   return targetElement;
 }
 
@@ -550,7 +680,7 @@ export function extractEventData(arg: any): {
   const extendedProps = event.extendedProps as any;
   const eventId = extendedProps.taskId || event.id || '';
   const eventElementId = `task-event-${eventId}`;
-  
+
   return {
     event,
     extendedProps,
@@ -571,7 +701,7 @@ export function computePanelPosition(
   actualHeight?: number
 ): { top: string; left: string } {
   let calculatedPosition = { top: '100px', left: '100px' };
-  
+
   if (targetElement) {
     if (useActualHeight && actualHeight) {
       const position = calculatePanelPositionByElementWithHeight(targetElement, actualHeight);
@@ -590,7 +720,7 @@ export function computePanelPosition(
       calculatedPosition = position;
     }
   }
-  
+
   return calculatedPosition;
 }
 
@@ -681,18 +811,18 @@ export function matchEventToElement(
   api: any
 ): any | null {
   let matchedEvent: any = null;
-  
+
   // 方法1: 从内部的 fc-custom-event 元素获取 data-event-id
   const customEventElement = eventElement.querySelector('.fc-custom-event') as HTMLElement;
   const eventId = customEventElement?.getAttribute('data-event-id');
-  
+
   if (eventId) {
     matchedEvent = api.getEventById(eventId);
     if (matchedEvent) {
       return matchedEvent;
     }
   }
-  
+
   // 方法2: 尝试通过 FullCalendar 的内部属性获取事件
   if ((eventElement as any).__event) {
     matchedEvent = (eventElement as any).__event;
@@ -700,7 +830,7 @@ export function matchEventToElement(
       return matchedEvent;
     }
   }
-  
+
   // 方法3: 通过事件文本内容匹配（品牌名称）
   const elementText = eventElement.textContent?.trim() || '';
   if (elementText) {
@@ -713,7 +843,7 @@ export function matchEventToElement(
       return matchedEvent;
     }
   }
-  
+
   // 方法4: 通过日期和位置匹配
   if (events.length > 0) {
     const dayElement = eventElement.closest('.fc-day') || eventElement.closest('[data-date]');
@@ -728,25 +858,25 @@ export function matchEventToElement(
           }
           return false;
         });
-        
+
         // 找到同一天中未匹配的事件
         const alreadyMatchedIds = new Set(
           Array.from(document.querySelectorAll('.fc-event[data-matched-event-id]'))
             .map(el => el.getAttribute('data-matched-event-id'))
         );
-        
+
         matchedEvent = sameDateEvents.find((evt: any) => {
           const id = evt.id || evt.extendedProps?.taskId;
           return id && !alreadyMatchedIds.has(String(id));
         }) || sameDateEvents[0];
-        
+
         if (matchedEvent) {
           return matchedEvent;
         }
       }
     }
   }
-  
+
   return null;
 }
 
@@ -759,52 +889,52 @@ export function initEventMouseHandlers(
 ): void {
   // 清理旧的事件处理器
   cleanupEventMouseHandlers();
-  
+
   if (!api) {
     console.warn('Calendar API not available');
     return;
   }
-  
+
   // 获取所有事件
   const events = api.getEvents();
   console.log('初始化鼠标事件处理器，找到', events.length, '个事件');
-  
+
   // 查找所有事件元素（只查找 .fc-event，不查找内部的 .fc-custom-event）
   const eventElements = document.querySelectorAll('.fc-event');
   console.log('找到', eventElements.length, '个事件DOM元素');
-  
+
   eventElements.forEach((element, index) => {
     const eventElement = element as HTMLElement;
-    
+
     // 匹配事件
     const matchedEvent = matchEventToElement(eventElement, events, api);
-    
+
     if (matchedEvent) {
       const extendedProps = matchedEvent.extendedProps as any;
-      
+
       // 标记这个元素已经匹配了事件
       const matchedId = matchedEvent.id || extendedProps.taskId || '';
       eventElement.setAttribute('data-matched-event-id', matchedId);
-      
+
       // 创建鼠标进入处理器
       const mouseEnterHandler = (e: MouseEvent) => {
         console.log('鼠标进入事件:', extendedProps.brand);
         e.stopPropagation();
-        
+
         // 检查是否已经有简介面板显示，并且鼠标在面板内部
         const introPanel = document.querySelector('.task-intro-panel');
         if (introPanel) {
           const panelRect = introPanel.getBoundingClientRect();
           const mouseX = e.clientX;
           const mouseY = e.clientY;
-          
+
           // 只检查鼠标是否在面板内部（不包括padding），如果在内部才阻止更新
           // 如果鼠标在面板外部（即使很近），允许更新为新任务
           if (mouseX >= panelRect.left && mouseX <= panelRect.right &&
-              mouseY >= panelRect.top && mouseY <= panelRect.bottom) {
+            mouseY >= panelRect.top && mouseY <= panelRect.bottom) {
             return; // 鼠标在面板内部，不触发更新
           }
-          
+
           // 检查当前显示的任务是否就是当前任务（避免从面板移回同一任务时重复触发）
           const currentTaskIdAttr = introPanel.getAttribute('data-current-task-id');
           const currentTaskId = matchedEvent.id || extendedProps.taskId || '';
@@ -814,16 +944,16 @@ export function initEventMouseHandlers(
           }
         }
         console.log("鼠标进入事件-并且鼠标不在面板内部，开始显示简介面板");
-        
+
         // 构建任务详情数据（使用外部函数）
         const taskDetailData = buildTaskDetailData(matchedEvent, extendedProps);
-        
+
         // 调用回调
         if (callbacks.onMouseEnter) {
           callbacks.onMouseEnter(taskDetailData, e);
         }
       };
-      
+
       // 创建鼠标离开处理器（已废弃，保留用于兼容）
       const mouseLeaveHandler = () => {
         console.log('鼠标离开事件:', extendedProps.brand);
@@ -832,24 +962,24 @@ export function initEventMouseHandlers(
           callbacks.onMouseLeave();
         }
       };
-      
+
       // 直接绑定到 .fc-event 元素
       eventElement.addEventListener('mouseenter', mouseEnterHandler);
       eventElement.addEventListener('mouseleave', mouseLeaveHandler);
-      
+
       // 保存处理器以便清理
       (eventElement as any)._mouseHandlers = {
         mouseEnterHandler,
         mouseLeaveHandler,
         event: matchedEvent
       };
-      
+
       console.log(`事件 ${index} 绑定成功`);
     } else {
       console.warn(`事件 ${index} 未能匹配到事件数据`);
     }
   });
-  
+
   console.log('鼠标事件绑定完成');
 }
 

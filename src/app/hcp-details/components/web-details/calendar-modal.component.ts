@@ -1,12 +1,9 @@
-import { Component, AfterViewInit, ViewChild, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { FullCalendarComponent } from '@fullcalendar/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FullCalendarModule } from '@fullcalendar/angular';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
 import { CalendarOptions, EventInput } from '@fullcalendar/core';
-import zhCnLocale from '@fullcalendar/core/locales/zh-cn';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -15,6 +12,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { TaskDetailData } from './components/task-detail-modal.component';
+import { CalendarConfigService, CalendarComponentState } from './calendar-config.service';
 import {
   TaskType,
   TaskIcon,
@@ -37,7 +35,8 @@ import {
   initEventMouseHandlers,
   cleanupEventMouseHandlers,
   type TimeoutManager,
-  type EventHandlerCallbacks
+  type EventHandlerCallbacks,
+  calendarEvents
 } from './calendar-data-handle';
 @Component({
   selector: 'app-calendar-modal',
@@ -56,7 +55,7 @@ import {
   templateUrl: './calendar-modal.component.html',
   styleUrl: './calendar-modal.component.scss'
 })
-export class CalendarModalComponent implements AfterViewInit, OnDestroy {
+export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('fullCalendar') calendarComponent!: FullCalendarComponent;
   private resizeObserver?: ResizeObserver;
   
@@ -73,19 +72,49 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
   pendingTaskEventId: string | null = null; // 等待显示的任务事件ID
   
   // 定时器管理器（符合函数式编程，通过参数传递）
-  private timeoutManager: TimeoutManager = {
+  timeoutManager: TimeoutManager = {
     showIntroTimeout: undefined,
     hideIntroTimeout: undefined
   };
   
   autoClickTodayTask: boolean = false; // 是否自动点击今天的任务
 
+  // 组件状态对象（用于服务访问）
+  private get componentState(): CalendarComponentState {
+    return {
+      // 使用 getter 方法获取最新状态
+      getShowTaskIntroPanel: () => this.showTaskIntroPanel,
+      getShowTaskDetailPanel: () => this.showTaskDetailPanel,
+      getCurrentTaskData: () => this.currentTaskData,
+      getPanelPosition: () => this.panelPosition,
+      getIsPanelPositionReady: () => this.isPanelPositionReady,
+      getIsPanelPositionLocked: () => this.isPanelPositionLocked,
+      getPendingTaskData: () => this.pendingTaskData,
+      getPendingTaskPosition: () => this.pendingTaskPosition,
+      getPendingTaskEventId: () => this.pendingTaskEventId,
+      timeoutManager: this.timeoutManager,
+      calendarEvents: this.calendarEvents,
+      cdr: this.cdr,
+      ngZone: this.ngZone,
+      setShowTaskIntroPanel: (value: boolean) => { this.showTaskIntroPanel = value; },
+      setShowTaskDetailPanel: (value: boolean) => { this.showTaskDetailPanel = value; },
+      setCurrentTaskData: (value: TaskDetailData | null) => { this.currentTaskData = value; },
+      setPanelPosition: (value: { top: string; left: string }) => { this.panelPosition = value; },
+      setIsPanelPositionReady: (value: boolean) => { this.isPanelPositionReady = value; },
+      setIsPanelPositionLocked: (value: boolean) => { this.isPanelPositionLocked = value; },
+      setPendingTaskData: (value: TaskDetailData | null) => { this.pendingTaskData = value; },
+      setPendingTaskPosition: (value: { top: string; left: string } | null) => { this.pendingTaskPosition = value; },
+      setPendingTaskEventId: (value: string | null) => { this.pendingTaskEventId = value; }
+    };
+  }
+
   constructor(
     private cdr: ChangeDetectorRef, 
     private ngZone: NgZone,
     private modal: NzModalService,
     private message: NzMessageService,
-    private modalRef: NzModalRef
+    private modalRef: NzModalRef,
+    public calendarConfigService: CalendarConfigService
   ) {
     // 从模态框配置中获取参数
     const config = this.modalRef.getConfig();
@@ -142,245 +171,74 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
   }
 
   // 初始化日历事件（使用共享的默认事件数据）
-  calendarEvents: EventInput[] = [
-    {
-      id: 'task-001', // 添加唯一ID
-      title: '欧乐欣', // 标题用于显示，但会被 eventContent 覆盖
-      extendedProps: {
-        taskId: 'task-001', // 也在 extendedProps 中保存ID
-        brand: '欧乐欣',
-        icon: TaskIcon.CallDoctor,
-        taskType: TaskType.CallDoctor,
-        taskDescription: '缺货',
-        isCompleted: false, // 未完成
-        displayOrder: 0 // 跑马灯任务，优先级最高，确保显示在最上面
-      },
-      start: new Date().toISOString().split('T')[0],
-      color: this.getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
-    },
-    {
-      id: 'task-1011', // 添加唯一ID
-      title: '欧乐欣', // 标题用于显示，但会被 eventContent 覆盖
-      extendedProps: {
-        taskId: 'task-1011', // 也在 extendedProps 中保存ID
-        brand: '欧乐欣',
-        icon: TaskIcon.CallDoctor,
-        taskType: TaskType.CallDoctor,
-        taskDescription: '这是拜访备注-可能是没有拜访成功',
-        isCompleted: false // 未完成
-      },
-      start: new Date(Date.now() + 86400000).toISOString().split('T')[0], // 昨天的日期
-      color: this.getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
-    },
-    {
-      id: 'task-2011', // 添加唯一ID
-      title: '欧乐欣', // 标题用于显示，但会被 eventContent 覆盖
-      extendedProps: {
-        taskId: 'task-2011', // 也在 extendedProps 中保存ID
-        brand: '欧乐欣',
-        icon: TaskIcon.CallDoctor,
-        taskType: TaskType.CallDoctor,
-        taskDescription: '这是拜访备注-可能是没有拜访成功',
-        isCompleted: false // 未完成
-      },
-      start: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // 昨天的日期
-      color: this.getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
-    },
-    {
-      id: 'task-3011', // 添加唯一ID
-      title: '欧乐欣', // 标题用于显示，但会被 eventContent 覆盖
-      extendedProps: {
-        taskId: 'task-3011', // 也在 extendedProps 中保存ID
-        brand: '欧乐欣',
-        icon: TaskIcon.CallDoctor,
-        taskType: TaskType.CallDoctor,
-        taskDescription: '这是拜访备注-可能是没有拜访成功',
-        isCompleted: false // 未完成
-      },
-      start: new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0], // 昨天的日期
-      color: this.getTaskColor(TaskType.CallDoctor, false) // 使用配置的颜色
-    },
-    {
-      id: 'task-002',
-      title: '全再乐',
-      extendedProps: {
-        taskId: 'task-002',
-        brand: '全再乐',
-        icon: TaskIcon.WriteArticle,
-        taskType: TaskType.WriteArticle,
-        taskDescription: '这是文章备注-可能是没有文章成功',
-        isCompleted: false, // 未完成
-        displayOrder: 1 // 显示顺序
-      },
-      start: new Date().toISOString().split('T')[0],
-      color: this.getTaskColor(TaskType.WriteArticle, false) // 使用配置的颜色
-    },
-    {
-      id: 'task-003',
-      title: '舒利迭',
-      extendedProps: {
-        taskId: 'task-003',
-        brand: '舒利迭',
-        icon: TaskIcon.SendWechat,
-        taskType: TaskType.SendWechat,
-        taskDescription: '这是微信备注-可能是没有微信成功',
-        isCompleted: false // 未完成
-      },
-      start: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0], // 7天后的日期
-      color: this.getTaskColor(TaskType.SendWechat, false) // 使用配置的颜色
-    },
-    {
-      id: 'task-004',
-      title: '测试朋友圈',
-      extendedProps: {
-        taskId: 'task-004',
-        brand: '测试品牌',
-        icon: TaskIcon.SendCircle,
-        taskType: TaskType.SendCircle,
-        taskDescription: '这是朋友圈备注-测试朋友圈功能',
-        isCompleted: false, // 未完成
-        displayOrder: 2 // 显示顺序
-      },
-      start: new Date().toISOString().split('T')[0],
-      color: this.getTaskColor(TaskType.SendCircle, false) // 使用配置的颜色
-    },
-    // 已完成任务的示例
-    {
-      id: 'task-005',
-      title: '已完成任务-欧乐欣',
-      extendedProps: {
-        taskId: 'task-005',
-        brand: '欧乐欣',
-        icon: TaskIcon.CallDoctor,
-        taskType: TaskType.CallDoctor,
-        taskDescription: '这是已完成的拜访任务',
-        isCompleted: true, // 已完成
-        processedTime: new Date().toLocaleString('zh-CN'),
-        processedBy: '李四'
-      },
-      start: new Date(Date.now() - 86400000).toISOString().split('T')[0], // 昨天的日期
-      color: this.getTaskColor(TaskType.CallDoctor, true) // 灰色（已完成）
-    },
-  ];
-
-  calendarOptions: CalendarOptions = {
-    plugins: [dayGridPlugin, interactionPlugin],
-    initialView: 'dayGridMonth',
-    locale: zhCnLocale,
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,dayGridWeek' // 只保留月视图和周视图，周视图不显示时间
-    },
-    events: this.calendarEvents,
-    editable: false, // 禁用编辑（拖拽、调整大小）
-    selectable: false, // 禁用选择日期范围
-    dayMaxEvents: true,
-    weekends: true,
-    // 事件排序：按 displayOrder 排序，确保跑马灯任务（欧乐欣）显示在最上面
-    eventOrder: (a: any, b: any) => {
-      const orderA = a.extendedProps?.displayOrder ?? 999;
-      const orderB = b.extendedProps?.displayOrder ?? 999;
-      return orderA - orderB;
-    },
-    height: '100%', // 使用100%填充父容器，通过CSS min-height限制最小高度
-    contentHeight: 'auto', // 内容高度自动
-            // 点击事件：显示任务处理面板
-            eventClick: (arg) => {
-              arg.jsEvent.preventDefault();
-              arg.jsEvent.stopPropagation();
-              this.handleEventClick(arg);
-              return false;
-            },
-    // 鼠标悬停事件 - FullCalendar 原生支持
-    eventMouseEnter: (arg) => {
-      this.handleEventMouseEnter(arg);
-    },
-    eventMouseLeave: (arg) => {
-      this.handleEventMouseLeave(arg);
-    },
-    // 自定义事件内容显示（多行展示）
-    eventContent: (arg) => {
-      const event = arg.event;
-      const extendedProps = event.extendedProps as any;
-      const brand = extendedProps.brand || '';
-      const taskType = extendedProps.taskType || '';
-      const taskDescription = extendedProps.taskDescription || '';
-      const icon = extendedProps.icon || '';
-      const isCompleted = extendedProps.isCompleted || false;
-      
-      // 创建多行内容，图标放在任务类型前面
-      // 不添加 title 属性，避免显示浏览器默认的 tooltip（问号）
-      const descriptionHtml = taskDescription 
-        ? `<div class="fc-event-desc">${this.escapeHtml(taskDescription)}</div>` 
-        : '';
-      
-      // 已完成标识
-      const completedBadge = isCompleted ? '<span class="fc-event-completed">已完成</span>' : '';
-      
-      // 获取事件ID用于匹配和设置元素ID
-      const eventId = extendedProps.taskId || event.id || '';
-      const eventElementId = `task-event-${eventId}`;
-      
-      const html = `
-        <div class="fc-custom-event" data-event-id="${eventId}" id="${eventElementId}">
-          <div class="fc-event-brand">
-            ${brand}
-            ${completedBadge}
-          </div>
-          <div class="fc-event-type">
-            ${icon ? `<i class="iconfont ${icon}"></i>` : ''}
-            <span>${taskType}</span>
-          </div>
-          ${descriptionHtml}
-        </div>
-      `;
-      
-      return { html };
-    }
-  };
+  calendarEvents: EventInput[] = calendarEvents;
 
   isShowCalendar = false;
-  
-  // 年月跳转相关
-  selectedYear: number = new Date().getFullYear();
-  selectedMonth: number = new Date().getMonth() + 1; // 1-12
-  
-  // 生成年份列表（当前年份前后各10年）
-  getYears(): number[] {
-    const currentYear = new Date().getFullYear();
-    const years: number[] = [];
-    for (let i = currentYear - 10; i <= currentYear + 10; i++) {
-      years.push(i);
-    }
-    return years;
-  }
-  
-  // 月份列表
-  months: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  
-  // 获取月份名称（中文）
-  getMonthName(month: number): string {
-    return `${month}月`;
-  }
   
   // 转义 HTML 特殊字符，用于 title 属性（使用外部函数）
   private escapeHtml = escapeHtml;
 
+  // 日历配置（通过服务创建）
+  calendarOptions!: CalendarOptions;
+
+  // 年月跳转相关 - 通过服务管理，但为了模板双向绑定，保留组件属性
+  get selectedYear(): number {
+    return this.calendarConfigService.selectedYear;
+  }
+  set selectedYear(value: number) {
+    this.calendarConfigService.selectedYear = value;
+  }
+
+  get selectedMonth(): number {
+    return this.calendarConfigService.selectedMonth;
+  }
+  set selectedMonth(value: number) {
+    this.calendarConfigService.selectedMonth = value;
+  }
+
+  // 月份列表 - 从服务获取
+  get months(): number[] {
+    return this.calendarConfigService.months;
+  }
+
+  // 生成年份列表 - 从服务获取
+  getYears(): number[] {
+    return this.calendarConfigService.getYears();
+  }
+
+  // 获取月份名称 - 从服务获取
+  getMonthName(month: number): string {
+    return this.calendarConfigService.getMonthName(month);
+  }
+
+  ngOnInit() {
+    // 初始化日历配置（在构造函数后、视图初始化前）
+    this.calendarOptions = this.calendarConfigService.createCalendarOptions(
+      this.calendarEvents,
+      {
+        onEventClick: (arg) => this.calendarConfigService.handleEventClick(arg, this.componentState),
+        onEventMouseEnter: (arg) => this.calendarConfigService.handleEventMouseEnter(arg, this.componentState),
+        onEventMouseLeave: (arg) => this.calendarConfigService.handleEventMouseLeave(arg, this.componentState),
+        escapeHtml: this.escapeHtml
+      }
+    );
+  }
+
   ngAfterViewInit() {
-    // 视图初始化完成后，多次延迟更新日历尺寸以确保宽度正确
     // 模态框打开需要时间，需要等待模态框完全渲染
     setTimeout(() => {
-      // this.updateCalendarSize();
+      //这个延迟展示日历是为了等待页面加载完成否则日历宽度有问题.
       this.isShowCalendar = true;
-      
       // 延迟初始化鼠标事件，等待日历完全渲染
       setTimeout(() => {
         this.initEventMouseHandlers();
-        
         // 如果需要自动点击今天的任务
         if (this.autoClickTodayTask) {
-          this.autoClickTodayFirstTask();
+          this.calendarConfigService.autoClickTodayFirstTask(
+            this.calendarComponent,
+            this.calendarEvents,
+            this.componentState
+          );
         }
       }, 200);
     }, 100);
@@ -391,7 +249,6 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       api.on('eventsSet', () => {
         setTimeout(() => {
           this.initEventMouseHandlers();
-          
           // 如果需要自动点击今天的任务
           if (this.autoClickTodayTask) {
             this.autoClickTodayFirstTask();
@@ -405,7 +262,11 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         
         // 如果需要自动点击今天的任务
         if (this.autoClickTodayTask) {
-          this.autoClickTodayFirstTask();
+          this.calendarConfigService.autoClickTodayFirstTask(
+            this.calendarComponent,
+            this.calendarEvents,
+            this.componentState
+          );
         }
       }, 600);
       
@@ -426,9 +287,6 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('resize', this.updateCalendarSize);
   }
 
-  
-  
-
   // 更新日历尺寸
   updateCalendarSize = () => {
     if (this.calendarComponent?.getApi()) {
@@ -438,286 +296,19 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  //MARK:鼠标进入任务事件（使用 FullCalendar 的 eventMouseEnter）
+  //MARK:鼠标进入任务事件（使用 FullCalendar 的 eventMouseEnter）- 已移至服务
   handleEventMouseEnter(arg: any): void {
-    // 如果已经显示了处理面板，不显示简介面板
-    if (this.showTaskDetailPanel) {
-      console.log("已经显示了处理面板，不显示简介面板");
-      return;
-    }
-    
-    // 提取事件数据（使用外部函数）
-    const { event, extendedProps, eventId, eventElementId } = extractEventData(arg);
-    
-    // 构建任务详情数据（使用外部函数）
-    const taskDetailData = buildTaskDetailData(event, extendedProps);
-    
-    // 如果简介面板已经显示，检查是否应该切换任务
-    if (this.showTaskIntroPanel && this.currentTaskData) {
-      const currentTaskId = this.currentTaskData.taskId;
-      const newTaskId = extendedProps.taskId || event.id || '';
-      
-      // 如果鼠标移入的是同一个任务，清除隐藏定时器，保持面板显示（从面板移回任务时）
-      if (currentTaskId === newTaskId) {
-        clearHideTimeout(this.timeoutManager); // 清除隐藏定时器，保持面板显示
-        return;
-      }
-      
-      // 如果鼠标移入的是不同任务，检查鼠标是否在简介面板内（不是附近）
-      const introPanel = document.querySelector('.task-intro-panel');
-      if (introPanel && arg.jsEvent) {
-        const panelRect = introPanel.getBoundingClientRect();
-        const mouseX = arg.jsEvent.clientX;
-        const mouseY = arg.jsEvent.clientY;
-        
-        // 只检查鼠标是否在面板内部（不包括padding），如果在内部才阻止更新
-        // 如果鼠标在面板外部（即使很近），允许更新为新任务
-        if (mouseX >= panelRect.left && mouseX <= panelRect.right &&
-            mouseY >= panelRect.top && mouseY <= panelRect.bottom) {
-          // 鼠标在面板内部，保持显示当前任务
-          return;
-        }
-      }
-      
-      // 如果旧面板还在显示（不管是位置锁定还是未锁定），都应该保存新任务数据，等待旧面板隐藏后再开始倒计时
-      // 这样可以避免新面板闪烁或立即显示
-      // 清除新任务的显示定时器（如果有的话）
-      clearShowTimeout(this.timeoutManager);
-      // 保存新任务数据，等待旧面板隐藏后再显示
-      const targetElement = findTargetElement(eventId, arg.el as HTMLElement);
-      const calculatedPosition = computePanelPosition(targetElement, arg.jsEvent);
-      this.pendingTaskData = taskDetailData;
-      this.pendingTaskPosition = calculatedPosition;
-      this.pendingTaskEventId = eventId;
-      // 直接返回，不开始新任务的倒计时
-      return;
-    }
-    
-    // 只清除显示定时器，不清除隐藏定时器（让旧任务的延迟隐藏正常执行）
-    clearShowTimeout(this.timeoutManager);
-    
-    // 查找目标元素（使用外部函数）
-    const targetElement = findTargetElement(eventId, arg.el as HTMLElement);
-    
-    // 计算面板位置（使用外部函数）
-    const calculatedPosition = computePanelPosition(targetElement, arg.jsEvent);
-    
-    // 延迟显示简介面板
-    this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
-      // 再次检查是否已经显示了处理面板
-      if (this.showTaskDetailPanel) {
-        return;
-      }
-      
-      // 如果旧面板位置已锁定且旧面板还在显示，保存新任务数据，等待旧面板隐藏后再显示
-      if (this.isPanelPositionLocked && this.showTaskIntroPanel && 
-          this.currentTaskData && this.currentTaskData.taskId !== taskDetailData.taskId) {
-        // 旧面板还在显示，保存新任务数据，等待旧面板隐藏后再显示
-        // 不显示新面板，等待旧面板隐藏
-        return;
-      }
-      
-      // 如果旧面板已经隐藏（isPanelPositionLocked 为 false），或者当前没有面板显示，可以显示新面板
-      // 再次验证任务ID是否匹配（确保是同一个任务）
-      if (this.currentTaskData && this.currentTaskData.taskId !== taskDetailData.taskId && 
-          this.isPanelPositionLocked) {
-        // 如果任务ID不匹配且位置已锁定，说明旧面板还在显示，不显示新面板
-        return;
-      }
-      
-      // 重新查找目标元素（确保使用最新的元素位置）
-      const currentTargetElement = findTargetElement(eventId, undefined);
-      if (!currentTargetElement) {
-        return;
-      }
-      
-      // 更新任务数据
-      this.currentTaskData = taskDetailData;
-      
-      // 标记位置未准备好，面板将保持不可见
-      this.isPanelPositionReady = false;
-      
-      // 先显示面板但保持不可见（用于获取实际高度）
-      // 先设置一个屏幕外的位置，避免在错误位置闪烁
-      this.panelPosition = { top: '-9999px', left: '-9999px' };
-      this.showTaskIntroPanel = true;
-      this.cdr.markForCheck();
-      
-      // 使用 requestAnimationFrame 等待 DOM 渲染完成，然后计算精确位置
-      this.ngZone.runOutsideAngular(() => {
-        // 等待一帧，让面板渲染
-        requestAnimationFrame(() => {
-          // 再等待一帧，确保面板完全渲染
-          requestAnimationFrame(() => {
-            // 再次验证任务ID和面板状态
-            if (!this.showTaskIntroPanel || !this.currentTaskData || 
-                this.currentTaskData.taskId !== taskDetailData.taskId) {
-              // 如果任务已改变，标记位置已准备好（虽然不显示）
-              this.ngZone.run(() => {
-                this.isPanelPositionReady = true;
-                this.cdr.markForCheck();
-              });
-              return;
-            }
-            
-            // 再次查找目标元素（确保使用最新的DOM元素）
-            const finalTargetElement = findTargetElement(eventId, undefined);
-            if (finalTargetElement) {
-              // 获取实际面板高度（使用外部函数）
-              const actualHeight = getActualPanelHeight('.task-intro-panel', 300);
-              
-              // 使用实际高度和最新元素计算精确位置
-              const position = computePanelPosition(finalTargetElement, null, true, actualHeight);
-              
-              // 如果有精确位置，使用精确位置；否则使用初始计算的预估位置
-              const finalPosition = position || calculatedPosition;
-              
-              this.ngZone.run(() => {
-                // 再次验证任务ID（确保位置计算时任务没有改变）
-                if (this.currentTaskData && this.currentTaskData.taskId === taskDetailData.taskId) {
-                  // 一次性更新位置和显示状态，避免闪烁
-                  this.panelPosition = finalPosition;
-                  // 标记位置已准备好，面板可以显示
-                  this.isPanelPositionReady = true;
-                  // 锁定面板位置，防止后续改变
-                  this.isPanelPositionLocked = true;
-                  this.cdr.markForCheck();
-                } else {
-                  // 任务已改变，标记位置已准备好（虽然不显示）
-                  this.isPanelPositionReady = true;
-                  this.cdr.markForCheck();
-                }
-              });
-            } else {
-              // 如果找不到元素，标记位置已准备好（虽然不显示）
-              this.ngZone.run(() => {
-                this.isPanelPositionReady = true;
-                this.cdr.markForCheck();
-              });
-            }
-          });
-        });
-      });
-    }, 700); // 延迟700毫秒
+    this.calendarConfigService.handleEventMouseEnter(arg, this.componentState);
   }
   
-  //MARK:鼠标离开任务事件（使用 FullCalendar 的 eventMouseLeave）
+  //MARK:鼠标离开任务事件（使用 FullCalendar 的 eventMouseLeave）- 已移至服务
   handleEventMouseLeave(arg: any): void {
-    // 如果已经显示了处理面板，不隐藏
-    if (this.showTaskDetailPanel) {
-      return;
-    }
-    
-    // 提取事件数据，检查是否是等待显示的任务
-    const { event, extendedProps, eventId } = extractEventData(arg);
-    const leavingTaskId = extendedProps.taskId || event.id || '';
-    
-    // 如果当前离开的任务正是等待显示的任务，不清除倒计时（保持倒计时继续）
-    // 这样可以避免快速移动时（A->B->C->D），D任务的倒计时被清除导致面板不显示
-    if (this.pendingTaskData && this.pendingTaskData.taskId === leavingTaskId) {
-      // 这是等待显示的任务，不清除倒计时，让它继续倒计时
-      return;
-    }
-    
-    // 如果有等待显示的任务，且倒计时已经开始（showIntroTimeout已设置）
-    // 不清除倒计时，因为倒计时是针对等待显示的任务的
-    // 这样可以避免快速移动时（A->B->C->D），在倒计时期间离开任务导致面板不显示
-    if (this.pendingTaskData && this.timeoutManager.showIntroTimeout) {
-      // 倒计时已经开始，不清除倒计时，让它继续倒计时
-      // 但如果是离开等待显示的任务本身，已经在上面返回了
-    } else {
-      // 清除显示定时器（使用外部函数）
-      clearShowTimeout(this.timeoutManager);
-    }
-    
-    // 如果简介面板已经显示，延迟隐藏（给用户时间移动到面板上）
-    if (this.showTaskIntroPanel) {
-      // 延迟隐藏简介面板（如果用户没有移动到面板上）
-      this.timeoutManager.hideIntroTimeout = window.setTimeout(() => {
-        // 再次检查是否已经显示了处理面板
-        if (this.showTaskDetailPanel) {
-          return;
-        }
-        this.showTaskIntroPanel = false;
-        this.currentTaskData = null;
-        this.isPanelPositionLocked = false; // 解锁位置
-        this.cdr.markForCheck();
-        
-        // 如果有等待显示的任务，优化：如果刚才有任务简介面板展示并隐藏了，只需要400ms就展示下一个任务面板
-        if (this.pendingTaskData && this.pendingTaskPosition && this.pendingTaskEventId) {
-          const pendingData = this.pendingTaskData;
-          const pendingPosition = this.pendingTaskPosition;
-          const pendingEventId = this.pendingTaskEventId;
-          
-          // 清空等待数据
-          this.pendingTaskData = null;
-          this.pendingTaskPosition = null;
-          this.pendingTaskEventId = null;
-          
-          // 优化：旧面板刚隐藏，直接开始短倒计时（400ms），不需要额外缓冲
-          const targetElement = findTargetElement(pendingEventId, undefined);
-          if (targetElement) {
-            // 开始新任务的倒计时（缩短为400ms，因为旧面板已经隐藏）
-            this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
-              if (!this.showTaskDetailPanel && 
-                  (!this.currentTaskData || this.currentTaskData.taskId === pendingData.taskId)) {
-                this.showPendingTaskPanel(pendingData, pendingPosition, pendingEventId);
-              }
-            }, 400); // 优化：缩短为400ms，因为旧面板已经隐藏
-          }
-        }
-      }, 300); // 延迟0.3秒，快速响应
-    } else {
-      // 如果面板还没显示，清除显示定时器即可
-      clearShowTimeout(this.timeoutManager);
-    }
+    this.calendarConfigService.handleEventMouseLeave(arg, this.componentState);
   }
   
-  //MARK:点击任务事件：显示任务处理面板
+  //MARK:点击任务事件：显示任务处理面板 - 已移至服务
   handleEventClick(arg: any): void {
-    // 清除所有定时器（使用外部函数）
-    clearAllTimeouts(this.timeoutManager);
-    
-    // 隐藏简介面板
-    this.showTaskIntroPanel = false;
-    
-    // 提取事件数据（使用外部函数）
-    const { event, extendedProps, eventId } = extractEventData(arg);
-    
-    // 构建任务详情数据（使用外部函数）
-    const taskDetailData = buildTaskDetailData(event, extendedProps);
-    this.currentTaskData = taskDetailData;
-    
-    // 查找目标元素（使用外部函数）
-    const targetElement = findTargetElement(eventId, arg.el as HTMLElement);
-    
-    // 计算位置（使用外部函数）
-    const calculatedPosition = computePanelPosition(targetElement, arg.jsEvent);
-    
-    // 显示处理面板
-    this.panelPosition = calculatedPosition;
-    this.showTaskDetailPanel = true;
-    
-    this.cdr.markForCheck();
-    
-    // 在下一帧使用实际面板高度微调位置（特别是上方位置）
-    this.ngZone.runOutsideAngular(() => {
-      requestAnimationFrame(() => {
-        if (targetElement && this.showTaskDetailPanel) {
-          // 获取实际面板高度（使用外部函数）
-          const actualHeight = getActualPanelHeight('.task-detail-panel-permanent', 300);
-          
-          // 使用实际高度重新计算位置
-          const position = computePanelPosition(targetElement, null, true, actualHeight);
-          if (position) {
-            this.ngZone.run(() => {
-              this.panelPosition = position;
-              this.cdr.markForCheck();
-            });
-          }
-        }
-      });
-    });
+    this.calendarConfigService.handleEventClick(arg, this.componentState);
   }
   
   //MARK:关闭任务处理面板
@@ -727,67 +318,13 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  //MARK:自动点击今天的第一个任务
+  //MARK:自动点击今天的第一个任务 - 已移至服务
   autoClickTodayFirstTask(): void {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
-    
-    // 查找今天的任务
-    const todayEvents = this.calendarEvents.filter((event: any) => {
-      if (!event.start) return false;
-      const eventDate = new Date(event.start);
-      eventDate.setHours(0, 0, 0, 0);
-      const eventDateStr = eventDate.toISOString().split('T')[0];
-      return eventDateStr === todayStr;
-    });
-    
-    if (todayEvents.length > 0) {
-      // 选择第一个任务
-      const firstEvent = todayEvents[0];
-      const eventId = firstEvent.id || firstEvent.extendedProps?.['taskId'];
-      
-      if (eventId && this.calendarComponent?.getApi()) {
-      const api = this.calendarComponent.getApi();
-        const event = api.getEventById(eventId);
-        
-        if (event) {
-          // 等待一小段时间确保DOM完全渲染
-          setTimeout(() => {
-            // 查找对应的DOM元素
-            const eventElement = document.querySelector(`[data-event-id="${eventId}"], .fc-event[data-event-id="${eventId}"]`);
-            if (!eventElement) {
-              // 如果找不到，尝试通过FullCalendar的API获取
-              const allEventElements = document.querySelectorAll('.fc-event');
-              for (let i = 0; i < allEventElements.length; i++) {
-                const el = allEventElements[i] as HTMLElement;
-                const elEvent = api.getEventById(el.getAttribute('data-event-id') || '');
-                if (elEvent && elEvent.id === eventId) {
-                  // 创建模拟的点击事件
-                  const mockEvent = {
-                    event: event,
-                    el: el,
-                    jsEvent: new MouseEvent('click', { bubbles: true, cancelable: true }),
-                    view: api.view
-                  };
-                  this.handleEventClick(mockEvent);
-                  return;
-                }
-              }
-            } else {
-              // 创建模拟的点击事件
-              const mockEvent = {
-                event: event,
-                el: eventElement,
-                jsEvent: new MouseEvent('click', { bubbles: true, cancelable: true }),
-                view: api.view
-              };
-              this.handleEventClick(mockEvent);
-            }
-          }, 300);
-        }
-      }
-    }
+    this.calendarConfigService.autoClickTodayFirstTask(
+      this.calendarComponent,
+      this.calendarEvents,
+      this.componentState
+    );
   }
   
   //MARK:初始化事件鼠标处理器（保留作为备用，现在主要使用 FullCalendar 的 eventMouseEnter/Leave）
@@ -809,12 +346,8 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         if (this.showTaskIntroPanel && this.isPanelPositionLocked) {
           return; // 面板位置已锁定，不更新
         }
-        // 否则更新（这个回调主要用于备用方案，现在主要使用 FullCalendar 的 eventMouseEnter）
-        // this.currentTaskData = taskData;
-        // this.updatePanelPosition(event);
       },
       onMouseLeave: () => {
-        // 已废弃，现在使用 FullCalendar 的 eventMouseLeave
       }
     };
     
@@ -849,138 +382,17 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
     }
   }
   
-  //MARK:显示等待的任务面板
-  private showPendingTaskPanel(
-    taskDetailData: TaskDetailData,
-    calculatedPosition: { top: string; left: string },
-    eventId: string
-  ): void {
-    // 重新查找目标元素（确保使用最新的元素位置）
-    const currentTargetElement = findTargetElement(eventId, undefined);
-    if (!currentTargetElement) {
-      return;
-    }
-    
-    // 更新任务数据
-    this.currentTaskData = taskDetailData;
-    
-    // 标记位置未准备好，面板将保持不可见
-    this.isPanelPositionReady = false;
-    
-    // 先显示面板但保持不可见（用于获取实际高度）
-    // 先设置一个屏幕外的位置，避免在错误位置闪烁
-    this.panelPosition = { top: '-9999px', left: '-9999px' };
-    this.showTaskIntroPanel = true;
-    this.cdr.markForCheck();
-    
-    // 使用 requestAnimationFrame 等待 DOM 渲染完成，然后计算精确位置
-    this.ngZone.runOutsideAngular(() => {
-      // 等待一帧，让面板渲染
-      requestAnimationFrame(() => {
-        // 再等待一帧，确保面板完全渲染
-        requestAnimationFrame(() => {
-          // 再次验证任务ID和面板状态
-          if (!this.showTaskIntroPanel || !this.currentTaskData || 
-              this.currentTaskData.taskId !== taskDetailData.taskId) {
-            // 如果任务已改变，标记位置已准备好（虽然不显示）
-            this.ngZone.run(() => {
-              this.isPanelPositionReady = true;
-              this.cdr.markForCheck();
-            });
-            return;
-          }
-          
-          // 再次查找目标元素（确保使用最新的DOM元素）
-          const finalTargetElement = findTargetElement(eventId, undefined);
-          if (finalTargetElement) {
-            // 获取实际面板高度（使用外部函数）
-            const actualHeight = getActualPanelHeight('.task-intro-panel', 300);
-            
-            // 使用实际高度和最新元素计算精确位置
-            const position = computePanelPosition(finalTargetElement, null, true, actualHeight);
-            
-            // 如果有精确位置，使用精确位置；否则使用初始计算的预估位置
-            const finalPosition = position || calculatedPosition;
-            
-            this.ngZone.run(() => {
-              // 再次验证任务ID（确保位置计算时任务没有改变）
-              if (this.currentTaskData && this.currentTaskData.taskId === taskDetailData.taskId) {
-                // 一次性更新位置和显示状态，避免闪烁
-                this.panelPosition = finalPosition;
-                // 标记位置已准备好，面板可以显示
-                this.isPanelPositionReady = true;
-                // 锁定面板位置，防止后续改变
-                this.isPanelPositionLocked = true;
-                this.cdr.markForCheck();
-              } else {
-                // 任务已改变，标记位置已准备好（虽然不显示）
-                this.isPanelPositionReady = true;
-                this.cdr.markForCheck();
-              }
-            });
-          } else {
-            // 如果找不到元素，标记位置已准备好（虽然不显示）
-            this.ngZone.run(() => {
-              this.isPanelPositionReady = true;
-              this.cdr.markForCheck();
-            });
-          }
-        });
-      });
-    });
-  }
+  //MARK:显示等待的任务面板 - 已移至服务（私有方法，通过服务内部调用）
   
   //MARK:鼠标进入面板（简介面板）
   handleIntroPanelMouseEnter() {
     // 清除隐藏定时器（使用外部函数）
     clearHideTimeout(this.timeoutManager);
   }
-  //MARK:鼠标离开面板（简介面板）
+  
+  //MARK:鼠标离开面板（简介面板）- 已移至服务
   handleIntroPanelMouseLeave() {
-    // 延迟隐藏简介面板（参考 tooltip 的实现，立即隐藏）
-    this.timeoutManager.hideIntroTimeout = window.setTimeout(() => {
-      if (!this.showTaskDetailPanel) {
-        // 在隐藏旧面板之前，先清除可能正在进行的显示定时器
-        // 这样可以避免新任务的倒计时与旧面板隐藏逻辑冲突
-        clearShowTimeout(this.timeoutManager);
-        
-        this.showTaskIntroPanel = false;
-        this.currentTaskData = null;
-        this.isPanelPositionReady = false; // 重置位置状态
-        this.isPanelPositionLocked = false; // 解锁位置
-        this.cdr.markForCheck();
-        
-        // 如果有等待显示的任务，优化：如果刚才有任务简介面板展示并隐藏了，只需要400ms就展示下一个任务面板
-        if (this.pendingTaskData && this.pendingTaskPosition && this.pendingTaskEventId) {
-          const pendingData = this.pendingTaskData;
-          const pendingPosition = this.pendingTaskPosition;
-          const pendingEventId = this.pendingTaskEventId;
-          
-          // 清空等待数据
-          this.pendingTaskData = null;
-          this.pendingTaskPosition = null;
-          this.pendingTaskEventId = null;
-          
-          // 优化：旧面板刚隐藏，直接开始短倒计时（400ms），不需要额外缓冲
-          const targetElement = findTargetElement(pendingEventId, undefined);
-          if (targetElement) {
-            // 开始新任务的倒计时（缩短为400ms，因为旧面板已经隐藏）
-            this.timeoutManager.showIntroTimeout = window.setTimeout(() => {
-              // 再次检查：如果又有了新的等待任务，或者面板已经显示，不显示当前这个
-              if (this.showTaskDetailPanel || this.showTaskIntroPanel) {
-                return;
-              }
-              if (this.pendingTaskData && this.pendingTaskData.taskId !== pendingData.taskId) {
-                return;
-              }
-              if (!this.currentTaskData || this.currentTaskData.taskId === pendingData.taskId) {
-                this.showPendingTaskPanel(pendingData, pendingPosition, pendingEventId);
-              }
-            }, 400); // 优化：缩短为400ms，因为旧面板已经隐藏
-          }
-        }
-      }
-    }, 500); // 延迟0.5秒，与任务元素移出保持一致
+    this.calendarConfigService.handleIntroPanelMouseLeave(this.componentState);
   }
   
   //MARK:处理任务确认弹框
@@ -1113,8 +525,11 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
 
   //MARK:跳转年月
   gotoDate(): void {
-    // 创建日期对象（设置为该月第一天）
-    const date = new Date(this.selectedYear, this.selectedMonth - 1, 1);
+    // 使用服务创建日期对象
+    const date = this.calendarConfigService.createDateForNavigation(
+      this.calendarConfigService.selectedYear,
+      this.calendarConfigService.selectedMonth
+    );
     
     if (this.calendarComponent?.getApi()) {
       const api = this.calendarComponent.getApi();
@@ -1127,9 +542,9 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
 
   //MARK:跳转今天
   goToToday(): void {
-    const today = new Date();
-    this.selectedYear = today.getFullYear();
-    this.selectedMonth = today.getMonth() + 1;
+    const today = this.calendarConfigService.getToday();
+    this.calendarConfigService.selectedYear = today.getFullYear();
+    this.calendarConfigService.selectedMonth = today.getMonth() + 1;
     if (this.calendarComponent?.getApi()) {
       const api = this.calendarComponent.getApi();
       api.today();
