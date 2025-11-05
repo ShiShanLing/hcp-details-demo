@@ -33,7 +33,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build project
-        run: yarn ng build --configuration github --stats-json && yarn gulp
+        run: yarn ng build --configuration github --stats-json
         env:
           NODE_ENV: production
 
@@ -43,7 +43,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist-gzip'  # Gulp 处理后的输出目录（包含 gzip 文件）
+          path: './dist/browser'  # 部署未压缩版本，GitHub Pages 会自动进行 HTTP 压缩
 
   deploy:
     environment:
