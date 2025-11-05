@@ -748,7 +748,7 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
       const eventId = firstEvent.id || firstEvent.extendedProps?.['taskId'];
       
       if (eventId && this.calendarComponent?.getApi()) {
-        const api = this.calendarComponent.getApi();
+      const api = this.calendarComponent.getApi();
         const event = api.getEventById(eventId);
         
         if (event) {
