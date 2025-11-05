@@ -26,14 +26,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # 使用 Node.js 20
+          node-version: '24.7.0'  # 使用 Node.js 24.7.0（与本地开发环境一致）
           cache: 'yarn'  # 使用 Yarn 缓存
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
       - name: Build project
-        run: yarn build:github
+        run: yarn ng build --configuration github --stats-json && yarn gulp
         env:
           NODE_ENV: production
 

@@ -7,7 +7,7 @@ stages:
 
 # 变量定义
 variables:
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
   YARN_VERSION: "1.22.19"
   # 根据您的 GitLab 项目路径调整这个值
   # 例如：如果项目路径是 group/project-name，则设置为 /project-name/
@@ -36,17 +36,13 @@ build:
     - yarn install --frozen-lockfile
 
   script:
-    # 构建项目（使用 gitlab 配置）
-    - yarn build:gitlab
+    # 构建项目（使用 gitlab 配置，直接使用 yarn ng build 避免 n 命令权限问题）
+    - yarn ng build --configuration gitlab --stats-json && yarn gulp
 
   artifacts:
     paths:
       - dist-gzip/
     expire_in: 1 hour
-    only:
-      - main
-      - master
-      - dev
 
   rules:
     # 只在推送到指定分支时运行
@@ -69,11 +65,7 @@ pages:
     paths:
       - public
     expire_in: 30 days
-    only:
-      - main
-      - master
-      - dev
-  
+
   rules:
     # 只在推送到指定分支时运行
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev"
