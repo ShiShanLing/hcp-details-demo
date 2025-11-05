@@ -43,7 +43,10 @@ export class WebDetailsComponent implements OnInit, OnDestroy {
   scrollbarMaxHeight = '95px';
   
   // 跑马灯文字内容 - 今日任务提醒
-  marqueeText = '📋 任务提醒：需要需要对医生拜访。品牌:欧乐欣。拜访类型:打电话。描述:这是拜访备注.';
+  /*
+  今天"电话拜访"张医生，探讨关于"欧乐欣"的"缺货"问题。
+  */
+  marqueeText = '📋 今天电话拜访张医生，探讨关于欧乐欣的缺货问题。';
 
   // 图例数据状态
   legendData = [

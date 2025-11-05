@@ -151,7 +151,7 @@ export class CalendarModalComponent implements AfterViewInit, OnDestroy {
         brand: '欧乐欣',
         icon: TaskIcon.CallDoctor,
         taskType: TaskType.CallDoctor,
-        taskDescription: '这是拜访备注-可能是没有拜访成功',
+        taskDescription: '缺货',
         isCompleted: false, // 未完成
         displayOrder: 0 // 跑马灯任务，优先级最高，确保显示在最上面
       },

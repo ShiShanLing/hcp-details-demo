@@ -1,5 +1,5 @@
 
-//添加是否是手机端入参
+
 export function getChartOption(isMobile: boolean = false) {
   const payload: any = {
     id: 'right-bottom',
@@ -25,8 +25,7 @@ export function getChartOption(isMobile: boolean = false) {
         '003',
         '004',
         '005',
-        '006',
-        '007',
+
       ],
       indicator: [
         { max: 10, min: 0, name: '001', color: '#000000' },
@@ -34,8 +33,6 @@ export function getChartOption(isMobile: boolean = false) {
         { max: 10, min: 0, name: '003', color: '#000000' },
         { max: 10, min: 0, name: '004', color: '#000000' },
         { max: 10, min: 0, name: '005', color: '#000000' },
-        { max: 10, min: 0, name: '006', color: '#000000' },
-        { max: 10, min: 0, name: '007', color: '#000000' },
       ],
     },
   };

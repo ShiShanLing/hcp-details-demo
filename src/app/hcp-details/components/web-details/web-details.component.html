@@ -52,7 +52,7 @@
     <div class="middle-section">
         <div class="header-box">
             <div class="tag"></div>
-            <div class="title">医生能力象限</div>
+            <div class="title">能力矩阵</div>
         </div>
         <ng-scrollbar class="scrollbar">
             <div class="chart-container">
@@ -85,10 +85,10 @@
                 <div class="project-card" (click)="onProjectCardClick(project)" style="cursor: pointer;">
                     <div class="project-header">
                         <i [class]="['iconfont', project.type === 'wechat' ? 'icon-weixin' : 'icon-dianhua1']"></i>
-                        <div class="project-name">{{project.type === 'wechat' ? '微信' : '电话'}}</div>
+                        <div class="project-name">{{project.type === 'wechat' ? '微信拜访' : '电话拜访'}}</div>
                         <div class="spacing"></div>
                         <div class="project-score-wrapper">
-                            <span class="score-label">分数:</span>
+                            <span class="score-label">得分:</span>
                             <span class="project-score-display"
                                 [class.clickable]="project.score !== undefined && project.score !== 100"
                                 [nz-tooltip]="project.score !== undefined && project.score !== 100 ? '查看细节' : null"

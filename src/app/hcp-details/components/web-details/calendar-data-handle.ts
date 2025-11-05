@@ -120,7 +120,7 @@ export function getDefaultCalendarEvents(): any[] {
         brand: '欧乐欣',
         icon: TaskIcon.CallDoctor,
         taskType: TaskType.CallDoctor,
-        taskDescription: '这是拜访备注-可能是没有拜访成功',
+        taskDescription: '缺货',
         isCompleted: false
       },
       start: today,
