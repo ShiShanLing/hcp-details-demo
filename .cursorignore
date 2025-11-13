@@ -1,0 +1,124 @@
+# Cursor Ignore File
+# 控制哪些文件不会被上传到 Cursor 服务器
+# 语法与 .gitignore 相同
+
+# ============================================
+# 白名单策略：只允许 .js, .ts, .html, .css, .scss 文件
+# ============================================
+# 先排除所有文件
+*
+
+# 然后允许特定的文件类型
+!*.ts
+!*.js
+!*.html
+!*.css
+!*.scss
+
+# 允许这些文件类型的所有子目录
+!**/*.ts
+!**/*.js
+!**/*.html
+!**/*.css
+!**/*.scss
+
+# ============================================
+# 排除特定的 .ts 和 .js 文件（即使允许了这些类型）
+# ============================================
+# 环境配置文件（不上传）
+**/environment*.ts
+**/environment*.js
+src/environments/
+environments/
+
+# ============================================
+# 排除目录（这些目录下的所有文件都不上传）
+# ============================================
+# 构建产物和编译输出
+/dist
+/dist-gzip
+/tmp
+/out-tsc
+/bazel-out
+*.zip
+*.gz
+*.tar
+*.tar.gz
+
+# 依赖目录
+/node_modules
+/.angular/cache
+/.sass-cache
+
+# 敏感文件和配置
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.cert
+*.crt
+secrets/
+private/
+**/secrets/**
+**/private/**
+**/confidential/**
+config/secrets.*
+*.secret
+*.password
+
+# 日志和临时文件
+*.log
+*.tmp
+*.cache
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+testem.log
+libpeerconnection.log
+connect.lock
+
+# 系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE 和编辑器配置
+.vscode/
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.history/
+
+# 测试和覆盖率报告
+/coverage
+/.nyc_output
+__screenshots__/
+/typings
+
+# Markdown 文档文件（不上传）
+*.md
+
+# 其他不需要的文件
+*.swp
+*.swo
+*~
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.vscode-test/

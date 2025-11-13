@@ -1,5 +1,7 @@
 import { TaskDetailData } from './components/task-detail-modal.component';
-
+/**
+ * calendar-modal.component中用到的数据处理逻辑都在这里,包括mock
+ */
 // ==================== 枚举定义 ====================
 export enum TaskType {
   CallDoctor = '打电话',
@@ -7,6 +9,7 @@ export enum TaskType {
   SendWechat = '发微信',
   SendCircle = '朋友圈',
 }
+
 
 export enum TaskIcon {
   CallDoctor = 'icon-dadianhua',
@@ -24,12 +27,10 @@ export enum TaskColor {
   Completed = '#bfbfbf',        // 灰色 - 已完成任务
 }
 
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import { CalendarOptions, EventInput } from '@fullcalendar/core';
-import zhCnLocale from '@fullcalendar/core/locales/zh-cn';
-import { ChangeDetectorRef, NgZone } from '@angular/core';
+import {  EventInput } from '@fullcalendar/core';
+/*
 
+*/
 export const calendarEvents: EventInput[] = [
   {
     id: 'task-001', // 添加唯一ID
@@ -830,7 +831,6 @@ export function matchEventToElement(
       return matchedEvent;
     }
   }
-
   // 方法3: 通过事件文本内容匹配（品牌名称）
   const elementText = eventElement.textContent?.trim() || '';
   if (elementText) {
@@ -858,13 +858,16 @@ export function matchEventToElement(
           }
           return false;
         });
-
+        /*
+          A抬起来,B掉.
+          B抬起来,A掉.
+        */
         // 找到同一天中未匹配的事件
         const alreadyMatchedIds = new Set(
           Array.from(document.querySelectorAll('.fc-event[data-matched-event-id]'))
             .map(el => el.getAttribute('data-matched-event-id'))
         );
-
+        
         matchedEvent = sameDateEvents.find((evt: any) => {
           const id = evt.id || evt.extendedProps?.taskId;
           return id && !alreadyMatchedIds.has(String(id));
@@ -876,7 +879,6 @@ export function matchEventToElement(
       }
     }
   }
-
   return null;
 }
 
@@ -889,7 +891,9 @@ export function initEventMouseHandlers(
 ): void {
   // 清理旧的事件处理器
   cleanupEventMouseHandlers();
-
+  /*
+  */
+  
   if (!api) {
     console.warn('Calendar API not available');
     return;

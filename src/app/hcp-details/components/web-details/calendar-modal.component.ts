@@ -14,23 +14,13 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { TaskDetailData } from './components/task-detail-modal.component';
 import { CalendarConfigService, CalendarComponentState } from './calendar-config.service';
 import {
-  TaskType,
-  TaskIcon,
-  TaskColor,
   getTaskColor,
-  buildTaskDetailData,
   hasTodayTask,
   escapeHtml,
   calculatePanelPositionByElement,
-  calculatePanelPositionByElementWithHeight,
   calculatePanelPositionByRect,
   calculatePanelPositionByMouseEvent,
-  findTargetElement,
-  extractEventData,
-  computePanelPosition,
-  getActualPanelHeight,
   clearAllTimeouts,
-  clearShowTimeout,
   clearHideTimeout,
   initEventMouseHandlers,
   cleanupEventMouseHandlers,
@@ -38,6 +28,7 @@ import {
   type EventHandlerCallbacks,
   calendarEvents
 } from './calendar-data-handle';
+
 @Component({
   selector: 'app-calendar-modal',
   standalone: true,
@@ -195,22 +186,19 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
   set selectedMonth(value: number) {
     this.calendarConfigService.selectedMonth = value;
   }
-
   // 月份列表 - 从服务获取
   get months(): number[] {
     return this.calendarConfigService.months;
   }
-
   // 生成年份列表 - 从服务获取
   getYears(): number[] {
     return this.calendarConfigService.getYears();
   }
-
   // 获取月份名称 - 从服务获取
   getMonthName(month: number): string {
     return this.calendarConfigService.getMonthName(month);
   }
-
+  //MARK:ngOnInit
   ngOnInit() {
     // 初始化日历配置（在构造函数后、视图初始化前）
     this.calendarOptions = this.calendarConfigService.createCalendarOptions(
@@ -223,7 +211,7 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       }
     );
   }
-
+  //MARK:ngAfterViewInit
   ngAfterViewInit() {
     // 模态框打开需要时间，需要等待模态框完全渲染
     setTimeout(() => {
@@ -286,7 +274,6 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
     // 监听窗口大小变化，确保日历宽度正确
     window.addEventListener('resize', this.updateCalendarSize);
   }
-
   // 更新日历尺寸
   updateCalendarSize = () => {
     if (this.calendarComponent?.getApi()) {
@@ -295,29 +282,24 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       api.updateSize();
     }
   }
-
   //MARK:鼠标进入任务事件（使用 FullCalendar 的 eventMouseEnter）- 已移至服务
   handleEventMouseEnter(arg: any): void {
     this.calendarConfigService.handleEventMouseEnter(arg, this.componentState);
   }
-  
   //MARK:鼠标离开任务事件（使用 FullCalendar 的 eventMouseLeave）- 已移至服务
   handleEventMouseLeave(arg: any): void {
     this.calendarConfigService.handleEventMouseLeave(arg, this.componentState);
   }
-  
   //MARK:点击任务事件：显示任务处理面板 - 已移至服务
   handleEventClick(arg: any): void {
     this.calendarConfigService.handleEventClick(arg, this.componentState);
   }
-  
   //MARK:关闭任务处理面板
   closeTaskDetailPanel(): void {
     this.showTaskDetailPanel = false;
     this.currentTaskData = null;
     this.cdr.markForCheck();
   }
-
   //MARK:自动点击今天的第一个任务 - 已移至服务
   autoClickTodayFirstTask(): void {
     this.calendarConfigService.autoClickTodayFirstTask(
@@ -326,7 +308,6 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       this.componentState
     );
   }
-  
   //MARK:初始化事件鼠标处理器（保留作为备用，现在主要使用 FullCalendar 的 eventMouseEnter/Leave）
   initEventMouseHandlers(): void {
     const api = this.calendarComponent?.getApi();
@@ -354,10 +335,8 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
     // 使用外部函数初始化（函数式编程）
     initEventMouseHandlers(api, callbacks);
   }
-  
   //MARK:清理事件鼠标处理器（使用外部函数）
   cleanupEventMouseHandlers = cleanupEventMouseHandlers;
-
   //MARK:根据元素位置更新面板位置（保持向后兼容）
   updatePanelPositionByElement(element: HTMLElement): void {
     const position = calculatePanelPositionByElement(element);
@@ -365,12 +344,10 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       this.panelPosition = position;
     }
   }
-  
   //MARK:根据Rect更新面板位置（保持向后兼容）
   updatePanelPositionByRect(rect: DOMRect): void {
     this.panelPosition = calculatePanelPositionByRect(rect);
   }
-  
   //MARK:更新面板位置（使用鼠标事件，备用方案）
   updatePanelPosition(event: MouseEvent) {
     console.log("更新面板位置");
@@ -381,7 +358,6 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       console.log("更新面板位置-更新结果", this.panelPosition);
     }
   }
-  
   //MARK:显示等待的任务面板 - 已移至服务（私有方法，通过服务内部调用）
   
   //MARK:鼠标进入面板（简介面板）
@@ -389,12 +365,10 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
     // 清除隐藏定时器（使用外部函数）
     clearHideTimeout(this.timeoutManager);
   }
-  
   //MARK:鼠标离开面板（简介面板）- 已移至服务
   handleIntroPanelMouseLeave() {
     this.calendarConfigService.handleIntroPanelMouseLeave(this.componentState);
   }
-  
   //MARK:处理任务确认弹框
   handleCompleteTask() {
     if (!this.currentTaskData) return;
@@ -423,7 +397,6 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       }
     });
   }
-
   //MARK:执行处理任务（确认后调用）
   private doCompleteTask(): Promise<void> {
     return new Promise((resolve) => {
@@ -521,8 +494,6 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       api.render();
     }
   }
-
-
   //MARK:跳转年月
   gotoDate(): void {
     // 使用服务创建日期对象
@@ -539,7 +510,6 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       this.updateCalendarSize();
     }
   }
-
   //MARK:跳转今天
   goToToday(): void {
     const today = this.calendarConfigService.getToday();
@@ -551,7 +521,7 @@ export class CalendarModalComponent implements OnInit, AfterViewInit, OnDestroy 
       this.updateCalendarSize();
     }
   }
-
+  //MARK:ngOnDestroy
   // 清理面板定时器
   ngOnDestroy() {
     // 清理定时器（使用外部函数）

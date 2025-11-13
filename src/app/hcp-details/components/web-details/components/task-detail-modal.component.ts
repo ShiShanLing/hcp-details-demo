@@ -16,13 +16,12 @@ export interface TaskDetailData {
   startDate: string;
   endDate: string;
   icon?: string;
-  // 处理时间和处理人
+  //处理时间和处理人
   processedTime?: string;
   processedBy?: string;
   // 任务ID，用于后续操作
   taskId?: string;
 }
-
 @Component({
   selector: 'app-task-detail-modal',
   standalone: true,
@@ -47,20 +46,18 @@ export class TaskDetailModalComponent implements OnInit {
     // 从 modal 的 nzData 获取传递的数据
     this.taskData = this.modal.getConfig().nzData || {} as TaskDetailData;
   }
-
+  //300 * 0.63 = 189
   ngOnInit(): void {
-    // 组件初始化
+    
   }
 
   // 处理任务 - 标记为已完成（用于演示，没有接口）
   handleCompleteTask(): void {
     this.processing = true;
-    
     // 模拟异步操作
     setTimeout(() => {
       // 更新任务数据
       this.taskData.isCompleted = true;
-      
       // 设置处理时间和处理人（用于演示）
       const now = new Date();
       this.taskData.processedTime = now.toLocaleString('zh-CN', {
@@ -71,8 +68,9 @@ export class TaskDetailModalComponent implements OnInit {
         minute: '2-digit',
         second: '2-digit'
       });
-      this.taskData.processedBy = '张三'; // 演示用的处理人，实际应从用户服务获取
-      
+      //
+      this.taskData.processedBy = '张三'; //演示用的处理人，实际应从用户服务获取
+      //
       this.processing = false;
       
       // 通知父组件任务已完成，传递更新后的数据

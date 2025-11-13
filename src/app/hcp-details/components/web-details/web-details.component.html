@@ -62,9 +62,7 @@
                     <div [class]="['average-value-box']">
                         <span class="title">平均分</span>
                         <span class="value">{{averageScore.toFixed(1)}}</span>
-                        <!-- <i class="iconfont icon-up1" [style]="{'margin-top': '7px'}"></i> -->
                     </div>
-                
                     @for (item of legendData; track item.name; let i = $index) {
                     <div class="legend-item" 
                          [class.disabled]="!item.visible"
@@ -85,6 +83,7 @@
             </div>
             <!-- 项目卡片展示 -->
             <div class="project-cards">
+            
                 @for (project of projectData; track project.name; let i = $index) {
                 <div class="project-card" (click)="onProjectCardClick(project)" style="cursor: pointer;">
                     <div class="project-header">
@@ -92,6 +91,7 @@
                         <div class="project-name">{{project.type === 'wechat' ? '微信拜访' : '电话拜访'}}</div>
                         <div class="spacing"></div>
                         <div class="project-score-wrapper">
+                            
                             <span class="score-label">评分:</span>
                             <span class="project-score-display"
                                 [class.clickable]="project.score !== undefined && project.score !== 100"

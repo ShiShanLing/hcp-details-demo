@@ -66,6 +66,10 @@ export interface CalendarComponentState {
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * 为了简化calender-modal中的代码, 所以将该组件中的部分逻辑抽离到这个服务中.
+ * 组件中的大部分手势交互相关逻辑都在这里,日历中的任务样式也在这里面. 这里不包含任何数据处理逻辑
+ * */
 export class CalendarConfigService {
   // 年月跳转相关状态
   selectedYear: number = new Date().getFullYear();
@@ -250,7 +254,6 @@ export class CalendarConfigService {
           return;
         }
       }
-      
       // 如果旧面板还在显示（不管是位置锁定还是未锁定），都应该保存新任务数据，等待旧面板隐藏后再开始倒计时
       // 这样可以避免新面板闪烁或立即显示
       // 清除新任务的显示定时器（如果有的话）
